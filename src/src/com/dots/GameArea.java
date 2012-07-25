@@ -5,20 +5,25 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 public class GameArea extends View {
   // A paint object to help us draw the lines.
   Paint mPaint;
-  //GameState mGameState;
+  GameState mGameState;
+  //Dot currentDot;
 
   float[] mGrid;
   // The constructor just initializes the paint object and sets some default colors.
-  public GameArea(Context context) {
+  public GameArea(Context context, GameState gameState) {
      super(context);
      mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
      setBackgroundColor(Color.WHITE);
      mPaint.setColor(Color.BLACK);
+     mGameState = gameState;
+     //mCurrentDot = new Dot();
   }
   
   private float[] computeGridLines(Rect rect) {
@@ -27,7 +32,7 @@ public class GameArea extends View {
     int t = rect.top;
     int b = rect.bottom;
     int numCells = 10;
-    int size = Math.min(r - l, (t - b)) / numCells;
+    int size = Math.min(r - l, (b - t)) / numCells;
     //ArrayList<Integer> l = new ArrayList<Integer>();
     // Draw 2 * (num cells + 1) lines.
     int numLines = (numCells + 1) << 1;
@@ -55,7 +60,7 @@ public class GameArea extends View {
     //for ()
     // draw
     Rect rect = canvas.getClipBounds();
-    canvas.drawRect(rect, mPaint);
+    //canvas.drawRect(rect, mPaint);
     /*
     int l = rect.left;
     int r = rect.right;
@@ -90,6 +95,43 @@ public class GameArea extends View {
         canvas.drawLine(currentLine.x0, currentLine.y0, currentLine.x1, currentLine.y1, paint);
      }
      */
+  }
+  
+  public void erase() {
+    invalidate();
+    Log.d("123", "erased grid");
+  }
+
+  @Override
+  public boolean onTouchEvent(MotionEvent event) {
+    float xx, yy;
+    switch(event.getAction()) {
+     /*
+     case MotionEvent.ACTION_DOWN:
+        currentLine = new Line(event.getX(), event.getY());
+        invalidate();
+        return true;
+     case MotionEvent.ACTION_MOVE:
+        currentLine.x1 = event.getX();
+        currentLine.y1 = event.getY();
+        invalidate();
+        return true;
+     */
+    case MotionEvent.ACTION_UP:
+      xx = event.getX();
+      yy = event.getY();
+      /*
+      currentLine.x1 = event.getX();
+        currentLine.y1 = event.getY();
+        lines.add(currentLine);
+        currentLine = null;
+        
+      */
+      //invalidate();
+      //canvas.drawCircle(x, y, r, mPaint);
+      return true;
+    }
+    return super.onTouchEvent(event);
   }
 
 }
