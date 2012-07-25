@@ -7,7 +7,9 @@ import com.google.android.gms.games.GamesClient;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
+import android.view.View;
 
 /**
  * Application ID: 2149793076813558136
@@ -27,6 +29,15 @@ public class MainActivity extends Activity {
         new GamesAPIConnectionCallbacks(),
         new GamesAPIOnConnectionFailedListener()
     );
+
+    View playView = findViewById(R.id.play);
+    playView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Intent intent = new Intent(MainActivity.this, Game.class);
+        startActivityForResult(intent, 0);
+      }
+    });
   }
 
   @Override
