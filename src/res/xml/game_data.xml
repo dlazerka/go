@@ -1,0 +1,9 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <game name="@string/app_name"
+        app_id="@string/app_id"
+        app_icon="@drawable/ic_launcher"
+        app_square_promo="@drawable/sample_square"
+        app_wide_promo="@drawable/sample_wide"
+        acquisition_endpoint="@string/acquisition_endpoint"
+    />
+</resources>
