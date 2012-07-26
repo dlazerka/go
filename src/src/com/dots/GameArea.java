@@ -64,24 +64,8 @@ public class GameArea extends View {
   }
   
   private void drawGrid(Canvas canvas) {
-    //for ()
     // draw
     Rect rect = canvas.getClipBounds();
-    //canvas.drawRect(rect, mPaint);
-    /*
-    int l = rect.left;
-    int r = rect.right;
-    int t = rect.top;
-    int bottom = rect.bottom;
-    int numCells = 10;
-    int size = Math.min(r - l, (t - b)) / numCells;
-    //ArrayList<Integer> l = new ArrayList<Integer>();
-    float[] ppints
-    for (int i = 0; i <= size; ++i) {
-      
-      
-    }
-    */
     if (mGrid == null) {
       // Lazily initialize mGrid.
       mGrid = computeGridLines(rect);
@@ -94,41 +78,35 @@ public class GameArea extends View {
      super.onDraw(canvas);
      drawGrid(canvas);
      drawDots(canvas);
-     //for (int)
-     // renderGameState();
-     /*
-     for(Line line : lines) {
-        canvas.drawLine(line.x0, line.y0, line.x1, line.y1, paint);
-     }
-     if (currentLine != null) {
-        canvas.drawLine(currentLine.x0, currentLine.y0, currentLine.x1, currentLine.y1, paint);
-     }
-     */
   }
   
-  private void drawDot(Dot dot, Canvas canvas, Paint paint) {
-    //
-    //public void draw(Canvas canvas, Paint paint) {
-    //paint.setColor(color);
-    int savedColor = paint.getColor();
+  private void drawDotsForColor(Dot.Colour color, Canvas canvas) {
+    int savedColor = mPaint.getColor();
     try {
       //Color
-      paint.setColor(dot.systemColor());
-      canvas.drawCircle(cell2Coord(dot.x), cell2Coord(dot.y), 10, paint);
+      mPaint.setColor(Dot.systemColor(color));
+      for (Dot d : mGameState.getDots(color)) {
+        float x0 = cell2Coord(d.x);
+        float y0 = cell2Coord(d.y);
+        canvas.drawCircle(x0, y0, 10, mPaint);
+        for (int i = 0; i < (Dot.NUM_DIRECTIONS >> 1); ++i) {
+          if (d.neignbours[i]) {
+            float x1 = cell2Coord(d.getNx(i));
+            float y1 = cell2Coord(d.getNy(i));
+            canvas.drawLine(x0, y0, x1, y1, mPaint);
+          }
+        }
+      }
+      //
     } finally {
-      paint.setColor(savedColor);
+      mPaint.setColor(savedColor);
     }
-    //}
   }
   
   private void drawDots(Canvas canvas) {
     //for ()
-    for (Dot d : mGameState.getDots(Dot.Colour.CL_RED)) {
-      drawDot(d, canvas, mPaint);
-    }
-    for (Dot d : mGameState.getDots(Dot.Colour.CL_BLUE)) {
-      drawDot(d, canvas, mPaint);
-    }
+    drawDotsForColor(Dot.Colour.CL_BLUE, canvas);
+    drawDotsForColor(Dot.Colour.CL_RED, canvas);
   }
   
   public void erase() {
@@ -167,7 +145,7 @@ public class GameArea extends View {
           MARGIN <= yy && yy <= MARGIN + mCellSize * NUM_CELLS) {
         Log.d("action up", "at " + xx + ", " + yy);
         if (mGameState.addDot(mGameState.getCurrentTurn(), roundCoordinate(xx), roundCoordinate(yy))) {
-          mGameState.flipTurn();
+          //mGameState.flipTurn();
           invalidate();
           return true;
         }
