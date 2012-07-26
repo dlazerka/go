@@ -1,5 +1,11 @@
 package com.dots;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -214,5 +220,56 @@ public class GameState implements TurnBasedMatchListener {
   @Override
   public void onTurnBasedMatchLoaded(TurnBasedMatchImpl arg0) {
     Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState");
+  }
+  
+  public byte[] serialize() throws IOException {
+    //Pair<int[][], Pair<ArrayList<Dot>, ArrayList<Dot>>> serialized = new Pair<int[][], Pair<ArrayList<Dot>, ArrayList<Dot>>>(
+    //    mDisposition, new Pair<ArrayList<Dot>, ArrayList<Dot>>(mBlueDots, mRedDots));
+    
+    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+    ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(byteStream));
+    os.flush();
+    os.writeObject(mDisposition);
+    os.flush();
+    os.writeObject(mBlueDots);
+    os.flush();
+    os.writeObject(mRedDots);
+    os.flush();
+
+    byte[] buf = byteStream.toByteArray();
+    os.close();
+    return buf;
+  }
+  
+  public void deserialize(byte[] state) throws IOException, ClassNotFoundException {
+    for (int i = 0; i < SIZE; ++i)
+      for (int j = 0; j < SIZE; ++j)
+        mGrid[i][j] = null;
+    
+    ByteArrayInputStream bis = new ByteArrayInputStream(state);
+    ObjectInputStream ois = new ObjectInputStream(bis);
+    
+    mDisposition = (int[][]) ois.readObject();
+    //System.out.println(book.toString());
+    mBlueDots = (ArrayList<Dot>) ois.readObject();
+    mRedDots = (ArrayList<Dot>) ois.readObject();
+    
+    ois.close();
+    
+    mCurrentTurn = mRedDots.size() == mBlueDots.size() ? Dot.Colour.CL_BLUE : Dot.Colour.CL_RED;
+    for (Dot d : mRedDots) {
+      mGrid[d.x][d.y] = d;
+    }
+    for (Dot d : mBlueDots) {
+      mGrid[d.x][d.y] = d;
+    }
+    //private Dot.Colour mCurrentTurn;
+    /*
+    private Dot[][] mGrid;
+    private int[][] mDisposition;
+    private TurnBasedMatchImpl mMatch;
+    private String mMyPlayerId;
+    private String mOpponentPlayerId;
+    */
   }
 }
