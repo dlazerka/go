@@ -27,8 +27,10 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
   private static final int REQUEST_RECONNECT_GAMES_API = 9000;
   private static final int REQUEST_CODE_CREATE_MATCH = 9001;
   public static final int REQUEST_SELECT_PLAYERS = 9002;
+  public static final int REQUEST_GAME = 9003;
 
   public static final String MY_PLAYER_ID = "MyPlayerID";
+  public static final String SCORE = "Score";
   private String mOpponentPlayerId;
   public static GamesClient mGamesClient;
   private TurnBasedMatchImpl mMatch;
@@ -91,6 +93,13 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
           startMatch();
         }
         break;
+      case REQUEST_GAME:
+        if (resultCode == Activity.RESULT_OK) {
+          Bundle extras = intent.getExtras();
+          String score = extras.getString(SCORE);
+          Toast.makeText(this, "Your score is " + score, Toast.LENGTH_LONG).show();
+//          mGamesClient.finishRealTimeMatch(mMatch, arg1, arg2)
+        }
     }
   }
 
@@ -102,7 +111,7 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
       @Override
       public void onClick(View v) {
          Intent intent = new Intent(MainActivity.this, Game.class);
-         startActivity(intent);
+         startActivityForResult(intent, REQUEST_GAME);
       }
     });
 

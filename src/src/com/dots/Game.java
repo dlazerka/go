@@ -43,6 +43,7 @@ public class Game extends Activity {
 
       LinearLayout container = (LinearLayout) findViewById(R.id.game_area);
       Button eraseButton = (Button)findViewById(R.id.eraseButton);
+      Button surrenderButton = (Button)findViewById(R.id.surrenderButton);
 
       final GameArea gameArea = new GameArea(this, mGameState);
 
@@ -56,6 +57,20 @@ public class Game extends Activity {
           gameArea.erase();
         }
       });
+
+      surrenderButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          Intent intent2 = Game.this.getIntent();
+          intent2.putExtra(MainActivity.SCORE, "10");
+          Game.this.setResult(Activity.RESULT_OK, intent2);
+          finish();
+        }
+      });
+
+      if (!MainActivity.DEVMODE) {
+        eraseButton.setVisibility(View.GONE);
+      }
   }
 
   @Override
