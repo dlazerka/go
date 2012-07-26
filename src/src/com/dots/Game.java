@@ -1,93 +1,176 @@
 package com.dots;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.crypto.spec.DESedeKeySpec;
+
+import com.google.android.gms.common.ConnectionStatus;
+import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
+import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;
+import com.google.android.gms.games.data.match.PlayerResult;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 public class Game extends Activity {
+  private static final int REQUEST_RECONNECT_GAMES_API = 9000;
 
+  public GamesClient mGamesClient;
   private GameState mGameState;
   private TurnBasedMatchImpl mMatch;
   private String mMyPlayerId;
+  private GameArea mGameArea;
+
+  private String mOpponentPlayerId;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
-      super.onCreate(savedInstanceState);
-      setContentView(R.layout.activity_game);
-      //getActionBar().setDisplayHomeAsUpEnabled(true);
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_game);
+    // getActionBar().setDisplayHomeAsUpEnabled(true);
 
-      Intent intent = getIntent();
-      if (intent != null && intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {
-        mMatch = intent.getParcelableExtra(GamesClient.EXTRA_TURN_BASED_MATCH);
-        mMyPlayerId = intent.getExtras().getString(MainActivity.MY_PLAYER_ID);
-        Toast.makeText(
-            this,
-            "Match with players: " + mMatch.getPlayerIds().toString(),
-            Toast.LENGTH_LONG).show();
-        mGameState = new GameState(mMatch, mMyPlayerId);
+    String appId = getString(R.string.app_id);
+    GamesAPIConnectionListener gamesAPIConnectionListener = new GamesAPIConnectionListener();
+    mGamesClient = new GamesClient(this, appId, gamesAPIConnectionListener,
+        gamesAPIConnectionListener);
+
+    Intent intent = getIntent();
+    if (intent != null && intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {
+      mMatch = intent.getParcelableExtra(GamesClient.EXTRA_TURN_BASED_MATCH);
+      mMyPlayerId = intent.getExtras().getString(MainActivity.MY_PLAYER_ID);
+      Toast.makeText(this, "Match with players: " + mMatch.getPlayerIds().toString(),
+          Toast.LENGTH_LONG).show();
+      mGameState = new GameState(this, mGamesClient, mMatch, mMyPlayerId);
+      ArrayList<String> playerIds = mMatch.getPlayerIds();
+      // ArrayList<ParticipantImpl> participants = match.getParticipantList()();
+      if (playerIds.get(0).equals(mMyPlayerId)) {
+        mOpponentPlayerId = playerIds.get(1);
       } else {
-        mGameState = new GameState();
+        mOpponentPlayerId = playerIds.get(0);
       }
+    } else {
+      mGameState = new GameState(this, mGamesClient);
+    }
 
-      LinearLayout container = (LinearLayout) findViewById(R.id.game_area);
-      Button eraseButton = (Button)findViewById(R.id.eraseButton);
-      Button surrenderButton = (Button)findViewById(R.id.surrenderButton);
+    LinearLayout container = (LinearLayout) findViewById(R.id.game_area);
+    Button eraseButton = (Button) findViewById(R.id.eraseButton);
+    Button surrenderButton = (Button) findViewById(R.id.surrenderButton);
 
-      final GameArea gameArea = new GameArea(this, mGameState);
+    mGameArea = new GameArea(this, mGameState);
+    container.addView(mGameArea);
+    mGameArea.setVisibility(View.INVISIBLE);
 
+    mGameArea.setLayoutParams(new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.MATCH_PARENT));
 
-      gameArea.setLayoutParams(new LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-      container.addView(gameArea);
+    eraseButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        mGameArea.erase();
+      }
+    });
 
-      eraseButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          gameArea.erase();
+    surrenderButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
+        results.add(new PlayerResult(mGamesClient.getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
+        results.add(new PlayerResult(mOpponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
+
+        mGamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
+//        finish();
+//        Intent intent2 = Game.this.getIntent();
+//        intent2.putExtra(MainActivity.SCORE, "10");
+//        Game.this.setResult(Activity.RESULT_OK, intent2);
+//        finish();
+      }
+    });
+
+    if (!MainActivity.DEVMODE) {
+      eraseButton.setVisibility(View.GONE);
+    }
+  }
+
+  private final class GamesAPIConnectionListener implements ConnectionCallbacks,
+      OnConnectionFailedListener {
+    @Override
+    public void onConnected() {
+      Log.d(MainActivity.TAG, "Connected to Games API");
+      mGameArea.setVisibility(View.VISIBLE);
+      if (mMatch != null) {
+        try {
+          mGameState.deserialize(mMatch.getData());
+        } catch (IOException e) {
+          e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+          e.printStackTrace();
         }
-      });
+      }
+    }
 
-      surrenderButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          Intent intent2 = Game.this.getIntent();
-          intent2.putExtra(MainActivity.SCORE, "10");
-          Game.this.setResult(Activity.RESULT_OK, intent2);
+    @Override
+    public void onDisconnected() {
+      Log.d(MainActivity.TAG, "disconnected");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionStatus status) {
+      int errorCode = status.getErrorCode();
+      if (status.hasResolution()) {
+        try {
+          status.startResolutionForResult(Game.this, REQUEST_RECONNECT_GAMES_API);
+        } catch (SendIntentException e) {
+          Log.e(MainActivity.TAG, "Unable to recover from a connection failure: " + errorCode + ".");
           finish();
         }
-      });
-
-      if (!MainActivity.DEVMODE) {
-        eraseButton.setVisibility(View.GONE);
+      } else {
+        Log.e(MainActivity.TAG, "Did you install GmsCore.apk?");
+        finish();
       }
+    }
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+    mGamesClient.connect();
+  }
+
+  @Override
+  protected void onStop() {
+    super.onStop();
+    mGamesClient.disconnect();
   }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-      getMenuInflater().inflate(R.menu.activity_game, menu);
-      return true;
+    getMenuInflater().inflate(R.menu.activity_game, menu);
+    return true;
   }
-
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-      switch (item.getItemId()) {
-          case android.R.id.home:
-              NavUtils.navigateUpFromSameTask(this);
-              return true;
-      }
-      return super.onOptionsItemSelected(item);
+    switch (item.getItemId()) {
+      case android.R.id.home:
+        NavUtils.navigateUpFromSameTask(this);
+        return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
 }

@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -16,6 +17,9 @@ import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailed
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
 import com.google.android.gms.games.data.match.Match;
+import com.google.android.gms.games.data.match.ParticipantBuffer;
+import com.google.android.gms.games.data.match.ParticipantImpl;
+import com.google.android.gms.games.data.match.PlayerResult;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
 public class MainActivity extends Activity implements TurnBasedMatchListener {
@@ -48,7 +52,13 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
     // Check if the activity was launched by invitation to a match.
     if (intent != null && intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {
       Log.i(TAG, "Match found, showing GameActivity");
-      mMatch = intent.getParcelableExtra(GamesClient.EXTRA_TURN_BASED_MATCH);
+      TurnBasedMatchImpl match = intent.getParcelableExtra(GamesClient.EXTRA_TURN_BASED_MATCH);
+      int status2 = match.getStatus();
+      Log.i(TAG, "Match found, showing GameActivity" + status2 + " vs " + Match.MATCH_STATUS_ACTIVE);
+      if (status2 == Match.MATCH_STATUS_ACTIVE) {
+        Log.i(TAG, "Match found, showing GameActivity");
+        mMatch = match;
+      }
     }
   }
 
@@ -62,8 +72,8 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
   }
 
   @Override
-  protected void onDestroy() {
-    super.onDestroy();
+  protected void onStop() {
+    super.onStop();
     mGamesClient.disconnect();
   }
 
@@ -94,12 +104,17 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
         }
         break;
       case REQUEST_GAME:
-        if (resultCode == Activity.RESULT_OK) {
+//        if (resultCode == Activity.RESULT_OK) {
           Bundle extras = intent.getExtras();
           String score = extras.getString(SCORE);
+          TurnBasedMatchImpl match = extras.getParcelable(GamesClient.EXTRA_TURN_BASED_MATCH);
+          ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
+          results.add(new PlayerResult(mGamesClient.getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
+          results.add(new PlayerResult(mOpponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
+          mGamesClient.finishTurnBasedMatch(this, match.getMatchId(), new byte[] {}, results);
           Toast.makeText(this, "Your score is " + score, Toast.LENGTH_LONG).show();
 //          mGamesClient.finishRealTimeMatch(mMatch, arg1, arg2)
-        }
+//        }
     }
   }
 

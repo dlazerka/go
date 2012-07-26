@@ -10,12 +10,17 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
 
 import com.dots.Dot.Colour;
+import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
 import com.google.android.gms.games.data.match.ParticipantImpl;
+import com.google.android.gms.games.data.match.TurnBasedMatch;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
 public class GameState implements TurnBasedMatchListener {
@@ -29,13 +34,15 @@ public class GameState implements TurnBasedMatchListener {
   private TurnBasedMatchImpl mMatch;
   private String mMyPlayerId;
   private String mOpponentPlayerId;
+  private GamesClient mGamesClient;
+  private Game mGameActivity;
 
-  public GameState(TurnBasedMatchImpl match, String myPlayerId) {
-    this();
+  public GameState(Game game, GamesClient gamesClient, TurnBasedMatchImpl match, String myPlayerId) {
+    this(game, gamesClient);
     mMatch = match;
     mMyPlayerId = myPlayerId;
     ArrayList<String> playerIds = match.getPlayerIds();
-//    ArrayList<ParticipantImpl> participants = match.getParticipantList()();
+    // ArrayList<ParticipantImpl> participants = match.getParticipantList()();
     if (playerIds.get(0).equals(myPlayerId)) {
       mOpponentPlayerId = playerIds.get(1);
     } else {
@@ -43,7 +50,9 @@ public class GameState implements TurnBasedMatchListener {
     }
   }
 
-  public GameState() {
+  public GameState(Game game, GamesClient gamesClient) {
+    mGameActivity = game;
+    mGamesClient = gamesClient;
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();
     mGrid = new Dot[SIZE][SIZE];
@@ -62,23 +71,25 @@ public class GameState implements TurnBasedMatchListener {
     for (int i = 0; i < SIZE; ++i) {
       for (int j = 0; j < SIZE; ++j) {
         if (mDisposition[i][j] != -1)
-        mDisposition[i][j] = -1;
+          mDisposition[i][j] = -1;
       }
     }
   }
 
   private boolean isDiagBlocked(int x, int y, int cl, int dir) {
-    if (Dot.dx[dir] == 0 || Dot.dy[dir] == 0) return false;
+    if (Dot.dx[dir] == 0 || Dot.dy[dir] == 0)
+      return false;
     // check
     return mDisposition[x + Dot.dx[dir]][y] == cl && mDisposition[x][y + Dot.dy[dir]] == cl;
   }
 
   private void search(int startX, int startY, int cl, int ns, int[][] mm) {
-    if (mm[startX][startY] != -1) return;
+    if (mm[startX][startY] != -1)
+      return;
     Queue<Pair<Integer, Integer>> q = new LinkedList<Pair<Integer, Integer>>();
     q.add(new Pair<Integer, Integer>(startX, startY));
     mm[startX][startY] = ns;
-    //while ()
+    // while ()
     while (!q.isEmpty()) {
       //
       Pair<Integer, Integer> p = q.poll();
@@ -87,8 +98,8 @@ public class GameState implements TurnBasedMatchListener {
       for (int i = 0; i < Dot.NUM_DIRECTIONS; ++i) {
         //
         int nx = x + Dot.dx[i], ny = y + Dot.dy[i];
-        if (0 <= nx && nx < SIZE && 0 <= ny && ny < SIZE && mm[nx][ny] == -1 &&
-            !isDiagBlocked(x, y, cl, i)) {
+        if (0 <= nx && nx < SIZE && 0 <= ny && ny < SIZE && mm[nx][ny] == -1
+            && !isDiagBlocked(x, y, cl, i)) {
           mm[nx][ny] = ns;
           q.add(new Pair<Integer, Integer>(nx, ny));
         }
@@ -98,15 +109,17 @@ public class GameState implements TurnBasedMatchListener {
 
   static int cl2int(Dot.Colour c) {
     switch (c) {
-      case CL_RED: return 1000;
-      case CL_BLUE: return 2000;
+      case CL_RED:
+        return 1000;
+      case CL_BLUE:
+        return 2000;
     }
     return 3000;
   }
 
   private void fill(Colour color) {
     //
-    //mDisposition = new int[SIZE][SIZE];
+    // mDisposition = new int[SIZE][SIZE];
     int cl = cl2int(color);
     int[][] mm = new int[SIZE][SIZE];
     for (int i = 0; i < SIZE; ++i) {
@@ -147,23 +160,24 @@ public class GameState implements TurnBasedMatchListener {
           if (mGrid[i][j] != null && cl2int(mGrid[i][j].color) == cl) {
             for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
               int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
-              if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] != cl &&
-                  mm[ni][nj] >= 0) {
+              if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] != cl
+                  && mm[ni][nj] >= 0) {
                 mm[i][j] = -2;
               }
             }
           }
         }
       for (int i = 0; i < SIZE; ++i)
-        for (int j = 0; j < SIZE; ++j) if (mm[i][j] == -2) {
-          for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
-            int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
-            if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] == -2) {
-              // i -> ni
-              mGrid[i][j].neignbours[k] = true;
+        for (int j = 0; j < SIZE; ++j)
+          if (mm[i][j] == -2) {
+            for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
+              int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
+              if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] == -2) {
+                // i -> ni
+                mGrid[i][j].neignbours[k] = true;
+              }
             }
           }
-        }
     }
   }
 
@@ -179,23 +193,20 @@ public class GameState implements TurnBasedMatchListener {
     fill(mCurrentTurn);
     flipTurn();
     /*
-    for (int i = 0; i < SIZE; ++i) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("line " + i + ":");
-      for (int j = 0; j < SIZE; ++j) {
-        sb.append(" " + mDisposition[i][j]);
-      }
-      Log.d("disp:", sb.toString());
-    }
-    Log.d("------", "-----------");
-    */
+     * for (int i = 0; i < SIZE; ++i) { StringBuilder sb = new StringBuilder();
+     * sb.append("line " + i + ":"); for (int j = 0; j < SIZE; ++j) {
+     * sb.append(" " + mDisposition[i][j]); } Log.d("disp:", sb.toString()); }
+     * Log.d("------", "-----------");
+     */
     return true;
   }
 
   public ArrayList<Dot> getDots(Dot.Colour color) {
     switch (color) {
-    case CL_RED: return mRedDots;
-    case CL_BLUE: return mBlueDots;
+      case CL_RED:
+        return mRedDots;
+      case CL_BLUE:
+        return mBlueDots;
     }
     return null;
   }
@@ -212,24 +223,46 @@ public class GameState implements TurnBasedMatchListener {
       }
     }
   }
+
   private void flipTurn() {
     if (mMatch == null) {
       mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
     } else {
-      MainActivity.mGamesClient.takeTurn(
-          this, mMatch.getMatchId(), new byte[] {}, mOpponentPlayerId);
+      try {
+        Log.i(MainActivity.TAG, mMyPlayerId + " made his turn");
+        byte[] state = serialize();
+        mGamesClient.takeTurn(this, mMatch.getMatchId(), state, mOpponentPlayerId);
+      } catch (IOException e) {
+        Log.e(MainActivity.TAG, e.getMessage());
+      }
     }
   }
 
   @Override
-  public void onTurnBasedMatchLoaded(TurnBasedMatchImpl arg0) {
-    Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState");
+  public void onTurnBasedMatchLoaded(TurnBasedMatchImpl match) {
+    Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState for player " + mMyPlayerId);
+    if (match == null) {
+      Toast.makeText(mGameActivity, "Match is null, quitting", Toast.LENGTH_LONG).show();
+      mGameActivity.setResult(Activity.RESULT_CANCELED);
+      mGameActivity.finish();
+      return;
+    }
+    mMatch = match;
+    try {
+      deserialize(match.getData());
+    } catch (IOException e) {
+      Log.e(MainActivity.TAG, e.getMessage());
+    } catch (ClassNotFoundException e) {
+      Log.e(MainActivity.TAG, e.getMessage());
+    }
   }
-  
+
   public byte[] serialize() throws IOException {
-    //Pair<int[][], Pair<ArrayList<Dot>, ArrayList<Dot>>> serialized = new Pair<int[][], Pair<ArrayList<Dot>, ArrayList<Dot>>>(
-    //    mDisposition, new Pair<ArrayList<Dot>, ArrayList<Dot>>(mBlueDots, mRedDots));
-    
+    // Pair<int[][], Pair<ArrayList<Dot>, ArrayList<Dot>>> serialized = new
+    // Pair<int[][], Pair<ArrayList<Dot>, ArrayList<Dot>>>(
+    // mDisposition, new Pair<ArrayList<Dot>, ArrayList<Dot>>(mBlueDots,
+    // mRedDots));
+
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(byteStream));
     os.flush();
@@ -244,22 +277,27 @@ public class GameState implements TurnBasedMatchListener {
     os.close();
     return buf;
   }
-  
+
   public void deserialize(byte[] state) throws IOException, ClassNotFoundException {
+    if (state == null) {
+      return;
+    }
+    reset();
+
     for (int i = 0; i < SIZE; ++i)
       for (int j = 0; j < SIZE; ++j)
         mGrid[i][j] = null;
-    
+
     ByteArrayInputStream bis = new ByteArrayInputStream(state);
     ObjectInputStream ois = new ObjectInputStream(bis);
-    
+
     mDisposition = (int[][]) ois.readObject();
-    //System.out.println(book.toString());
+    // System.out.println(book.toString());
     mBlueDots = (ArrayList<Dot>) ois.readObject();
     mRedDots = (ArrayList<Dot>) ois.readObject();
-    
+
     ois.close();
-    
+
     mCurrentTurn = mRedDots.size() == mBlueDots.size() ? Dot.Colour.CL_BLUE : Dot.Colour.CL_RED;
     for (Dot d : mRedDots) {
       mGrid[d.x][d.y] = d;
@@ -267,13 +305,11 @@ public class GameState implements TurnBasedMatchListener {
     for (Dot d : mBlueDots) {
       mGrid[d.x][d.y] = d;
     }
-    //private Dot.Colour mCurrentTurn;
+    // private Dot.Colour mCurrentTurn;
     /*
-    private Dot[][] mGrid;
-    private int[][] mDisposition;
-    private TurnBasedMatchImpl mMatch;
-    private String mMyPlayerId;
-    private String mOpponentPlayerId;
-    */
+     * private Dot[][] mGrid; private int[][] mDisposition; private
+     * TurnBasedMatchImpl mMatch; private String mMyPlayerId; private String
+     * mOpponentPlayerId;
+     */
   }
 }
