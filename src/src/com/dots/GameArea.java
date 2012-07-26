@@ -1,5 +1,7 @@
 package com.dots;
 
+import com.dots.Dot.Colour;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -8,6 +10,7 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 public class GameArea extends View {
   // A paint object to help us draw the lines.
@@ -28,14 +31,14 @@ public class GameArea extends View {
      mGameState = gameState;
      //mCurrentDot = new Dot();
   }
-  
+
   private float[] computeGridLines(Rect rect) {
     int l = rect.left;
     int r = rect.right;
     int t = rect.top;
     int b = rect.bottom;
     //int numCells = 10;
-    
+
     int minDimension = Math.min(r - l, (b - t));
     // leave 10 pts for margin.
     //final int margin = 10;
@@ -45,7 +48,7 @@ public class GameArea extends View {
     int numLines = (NUM_CELLS + 1) << 1;
     // Each line is specified with 4 coordinates.
     float[] points = new float[numLines << 2];
-    
+
     for (int i = 0, start = MARGIN, at = 0; i <= NUM_CELLS; ++i, start += mCellSize) {
       //for ()
       // horizontal.
@@ -62,7 +65,7 @@ public class GameArea extends View {
     }
     return points;
   }
-  
+
   private void drawGrid(Canvas canvas) {
     // draw
     Rect rect = canvas.getClipBounds();
@@ -72,7 +75,7 @@ public class GameArea extends View {
     }
     canvas.drawLines(mGrid, mPaint);
   }
-  
+
   @Override
   protected void onDraw(Canvas canvas) {
      super.onDraw(canvas);
@@ -99,7 +102,7 @@ public class GameArea extends View {
       mPaint.setColor(color);
     }
   }
-  
+
   private void drawDotsForColor(Dot.Colour color, Canvas canvas) {
     int savedColor = mPaint.getColor();
     try {
@@ -122,23 +125,23 @@ public class GameArea extends View {
       mPaint.setColor(savedColor);
     }
   }
-  
+
   private void drawDots(Canvas canvas) {
     //for ()
     drawDotsForColor(Dot.Colour.CL_BLUE, canvas);
     drawDotsForColor(Dot.Colour.CL_RED, canvas);
   }
-  
+
   public void erase() {
     mGameState.reset();
     invalidate();
     //Log.d("123", "erased grid");
   }
-  
+
   private int roundCoordinate(float t) {
     return (int)((t - MARGIN) / mCellSize + 0.5);
   }
-  
+
   private int cell2Coord(int t) {
     return MARGIN + t * mCellSize;
   }
@@ -164,13 +167,18 @@ public class GameArea extends View {
       if (MARGIN <= xx && xx <= MARGIN + mCellSize * NUM_CELLS &&
           MARGIN <= yy && yy <= MARGIN + mCellSize * NUM_CELLS) {
         Log.d("action up", "at " + xx + ", " + yy);
-        if (mGameState.addDot(mGameState.getCurrentTurn(), roundCoordinate(xx), roundCoordinate(yy))) {
-          //mGameState.flipTurn();
-          invalidate();
-          return true;
+        Colour currentTurn = mGameState.getCurrentTurn();
+        if (currentTurn != null) {
+          if (mGameState.addDot(currentTurn, roundCoordinate(xx), roundCoordinate(yy))) {
+            //mGameState.flipTurn();
+            invalidate();
+            return true;
+          }
+        } else {
+          Toast.makeText(getContext(), "Waiting for opponent's turn", Toast.LENGTH_LONG).show();
         }
         //canvas.drawCircle(x, y, r, mPaint);
-        
+
       }
     }
     return super.onTouchEvent(event);
