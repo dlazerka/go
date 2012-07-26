@@ -81,6 +81,26 @@ public class GameArea extends View {
      super.onDraw(canvas);
      drawGrid(canvas);
      drawDots(canvas);
+     displayScore(canvas);
+  }
+  
+  private void displayScore(Canvas canvas) {
+    Rect rect = canvas.getClipBounds();
+    int l = rect.left;
+    int r = rect.right;
+    int b = rect.bottom;
+    float textSize = mPaint.getTextSize();
+    int color = mPaint.getColor();
+    try {
+      mPaint.setTextSize(50);
+      mPaint.setColor(Color.BLUE);
+      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_BLUE)), l + 30, b - 25, mPaint);
+      mPaint.setColor(Color.RED);
+      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_RED)), r - 50, b - 25, mPaint);
+    } finally {
+      mPaint.setTextSize(textSize);
+      mPaint.setColor(color);
+    }
   }
 
   private void drawDotsForColor(Dot.Colour color, Canvas canvas) {

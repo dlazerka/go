@@ -312,4 +312,14 @@ public class GameState implements TurnBasedMatchListener {
      * mOpponentPlayerId;
      */
   }
+
+  public int getScore(Dot.Colour color) {
+    ArrayList<Dot> opponent = getDots(Dot.oppositeColor(color));
+    int opponentColor = cl2int(Dot.oppositeColor(color));
+    int result = 0;
+    for (Dot d : opponent) {
+      if (mDisposition[d.x][d.y] != opponentColor) ++result;
+    }
+    return result;
+  }
 }
