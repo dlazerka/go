@@ -18,8 +18,11 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
   public static final String TAG = "Dots";
-  private static final int RESULT_CODE_CONNECT_GAMES_API = 0;
+  private static final int REQUEST_RECONNECT_GAMES_API = 9000;
+  public static final int REQUEST_SELECT_PLAYERS = 9001;
+  private static final int REQUEST_GAME = 9002;
   private GamesClient mGamesClient;
+  private String mOpponentPlayerId;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -56,12 +59,26 @@ public class MainActivity extends Activity {
   public void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
     switch (requestCode) {
-    case RESULT_CODE_CONNECT_GAMES_API:
+    case REQUEST_RECONNECT_GAMES_API:
       if (resultCode == Activity.RESULT_OK) {
-        // We resolved ConnectionStatus error successfully. Try to connect
-        // again.
+        // We resolved ConnectionStatus error successfully.
+        // Try to connect again.
         mGamesClient.connect();
       }
+      break;
+    case REQUEST_SELECT_PLAYERS:
+      if (resultCode == Activity.RESULT_OK) {
+        String opponentPlayerId = mOpponentPlayerId;
+        mOpponentPlayerId = intent.getStringArrayListExtra(
+            GamesClient.EXTRA_PLAYERS).get(0);
+        Intent gameIntent = new Intent(MainActivity.this, Game.class);
+        gameIntent.getExtras().putString("OpponentPlayerID", opponentPlayerId);
+        startActivityForResult(gameIntent, REQUEST_GAME);
+      }
+      break;
+    case REQUEST_GAME:
+      Toast.makeText(MainActivity.this, "Game is ended.",
+          Toast.LENGTH_LONG).show();
       break;
     }
   }
@@ -79,8 +96,8 @@ public class MainActivity extends Activity {
       int errorCode = status.getErrorCode();
       if (status.hasResolution()) {
         try {
-          status.startResolutionForResult(
-              MainActivity.this, RESULT_CODE_CONNECT_GAMES_API);
+          status.startResolutionForResult(MainActivity.this,
+              REQUEST_RECONNECT_GAMES_API);
         } catch (SendIntentException e) {
           Log.e(TAG, "Unable to recover from a connection failure.");
           finish();
@@ -101,6 +118,8 @@ public class MainActivity extends Activity {
       String playerId = mGamesClient.getCurrentPlayerId();
       Toast.makeText(MainActivity.this, playerId + " is connected.",
           Toast.LENGTH_LONG).show();
+      Intent selectPlayers = mGamesClient.getSelectPlayersIntent(2, 2);
+      startActivityForResult(selectPlayers, REQUEST_SELECT_PLAYERS);
     }
 
     @Override
