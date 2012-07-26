@@ -36,8 +36,6 @@ public class GameState implements TurnBasedMatchListener {
   }
 
   public GameState() {
-
-    //
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();
     mGrid = new Dot[SIZE][SIZE];
@@ -211,5 +209,10 @@ public class GameState implements TurnBasedMatchListener {
     } else {
       MainActivity.mGamesClient.takeTurn(this, mMatch.getMatchId(), new byte[] {}, mOpponentPlayerId);
     }
+  }
+  
+  @Override
+  public void onTurnBasedMatchLoaded(TurnBasedMatchImpl arg0) {
+    Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState");
   }
 }
