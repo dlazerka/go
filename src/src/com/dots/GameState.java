@@ -9,6 +9,7 @@ import android.util.Pair;
 
 import com.dots.Dot.Colour;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
+import com.google.android.gms.games.data.match.ParticipantImpl;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
 public class GameState implements TurnBasedMatchListener {
@@ -28,6 +29,7 @@ public class GameState implements TurnBasedMatchListener {
     mMatch = match;
     mMyPlayerId = myPlayerId;
     ArrayList<String> playerIds = match.getPlayerIds();
+//    ArrayList<ParticipantImpl> participants = match.getParticipantList()();
     if (playerIds.get(0).equals(myPlayerId)) {
       mOpponentPlayerId = playerIds.get(1);
     } else {
@@ -87,7 +89,7 @@ public class GameState implements TurnBasedMatchListener {
       }
     }
   }
-  
+
   static int cl2int(Dot.Colour c) {
     switch (c) {
       case CL_RED: return 1000;
@@ -95,7 +97,7 @@ public class GameState implements TurnBasedMatchListener {
     }
     return 3000;
   }
-  
+
   private void fill(Colour color) {
     //
     //mDisposition = new int[SIZE][SIZE];
@@ -110,7 +112,7 @@ public class GameState implements TurnBasedMatchListener {
         }
       }
     }
-    
+
     for (int i = 0, ns = 0; i < SIZE; ++i) {
       // start at (i, 0)
       search(i, 0, cl, ns++, mm);
@@ -118,7 +120,7 @@ public class GameState implements TurnBasedMatchListener {
       search(0, i, cl, ns++, mm);
       search(SIZE - 1, i, cl, ns++, mm);
     }
-    
+
     int numSurrounded = 0;
     for (int i = 0; i < SIZE; ++i) {
       for (int j = 0; j < SIZE; ++j) {
@@ -146,7 +148,7 @@ public class GameState implements TurnBasedMatchListener {
             }
           }
         }
-      for (int i = 0; i < SIZE; ++i) 
+      for (int i = 0; i < SIZE; ++i)
         for (int j = 0; j < SIZE; ++j) if (mm[i][j] == -2) {
           for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
             int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
@@ -158,7 +160,7 @@ public class GameState implements TurnBasedMatchListener {
         }
     }
   }
-  
+
   public boolean addDot(Dot.Colour color, int atX, int atY) {
     if (mGrid[atX][atY] != null || mDisposition[atX][atY] != -1) {
       return false;
@@ -167,7 +169,7 @@ public class GameState implements TurnBasedMatchListener {
     getDots(color).add(d);
     mGrid[atX][atY] = d;
     mDisposition[atX][atY] = cl2int(mCurrentTurn);
-    
+
     fill(mCurrentTurn);
     flipTurn();
     /*
@@ -194,12 +196,13 @@ public class GameState implements TurnBasedMatchListener {
 
   public Dot.Colour getCurrentTurn() {
     if (mMatch == null) {
-    return mCurrentTurn;
+      return mCurrentTurn;
     } else {
-      if (mMatch.getPendingPlayerId().equals(mMyPlayerId)) {
+      String pendingPlayerId = mMatch.getPendingPlayerId();
+      if (pendingPlayerId.equals(mMyPlayerId)) {
         return Dot.Colour.CL_RED;
       } else {
-        return Dot.Colour.CL_BLUE;
+        return null;
       }
     }
   }
@@ -207,10 +210,11 @@ public class GameState implements TurnBasedMatchListener {
     if (mMatch == null) {
       mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
     } else {
-      MainActivity.mGamesClient.takeTurn(this, mMatch.getMatchId(), new byte[] {}, mOpponentPlayerId);
+      MainActivity.mGamesClient.takeTurn(
+          this, mMatch.getMatchId(), new byte[] {}, mOpponentPlayerId);
     }
   }
-  
+
   @Override
   public void onTurnBasedMatchLoaded(TurnBasedMatchImpl arg0) {
     Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState");
