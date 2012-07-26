@@ -16,7 +16,7 @@ public class Dot {
     this.y = y;
   }
   
-  static private int color2Int(Dot.Colour color) {
+  public int systemColor() {
     //
     switch (color) {
     case CL_RED: return Color.RED;
@@ -24,7 +24,7 @@ public class Dot {
     }
     return 0;
   }
-  
+  /*
   public void draw(Canvas canvas, Paint paint) {
     //paint.setColor(color);
     int savedColor = paint.getColor();
@@ -36,4 +36,5 @@ public class Dot {
       paint.setColor(savedColor);
     }
   }
+  */
 }
