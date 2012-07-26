@@ -16,6 +16,7 @@ public class Dot {
   boolean[] neignbours;
   int label;
   boolean isSurrounded;
+  Colour finalColour;
   
   public static int oppositeDirection(int direction) { return NUM_DIRECTIONS - 1 - direction; }
   public static Colour oppositeColor(Colour color) {
@@ -23,7 +24,7 @@ public class Dot {
   }
   
   public Dot(Colour color, int x, int y) {
-    this.color = color;
+    this.color = this.finalColour = color;
     this.x = x;
     this.y = y;
     this.neignbours = new boolean[NUM_DIRECTIONS];
