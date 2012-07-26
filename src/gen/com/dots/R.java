@@ -24,8 +24,9 @@ public final class R {
     public static final class id {
         public static final int eraseButton=0x7f090001;
         public static final int game_area=0x7f090000;
-        public static final int menu_settings=0x7f090003;
-        public static final int play=0x7f090002;
+        public static final int inviteFriends=0x7f090003;
+        public static final int menu_settings=0x7f090004;
+        public static final int playAlone=0x7f090002;
     }
     public static final class layout {
         public static final int activity_game=0x7f030000;

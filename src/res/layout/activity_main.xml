@@ -56,12 +56,19 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/play"
+            android:id="@+id/playAlone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:clickable="true"
-            android:text="Play"/>
+            android:text="Play Alone"/>
+        <Button
+            android:id="@+id/inviteFriends"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:clickable="true"
+            android:text="Invite Friends"/>
     </LinearLayout>
 
 </RelativeLayout>

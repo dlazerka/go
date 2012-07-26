@@ -1,5 +1,7 @@
 package com.dots;
 
+import java.util.ArrayList;
+
 import com.dots.R;
 import com.google.android.gms.common.ConnectionStatus;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -16,13 +18,15 @@ import android.view.View;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+  public static final String OPPONENT_PLAYER_ID = "OpponentPlayerID";
+  public static final String MY_PLAYER_ID = "MyPlayerID";
 
   public static final String TAG = "Dots";
   private static final int REQUEST_RECONNECT_GAMES_API = 9000;
   public static final int REQUEST_SELECT_PLAYERS = 9001;
   private static final int REQUEST_GAME = 9002;
   private GamesClient mGamesClient;
-  private String mOpponentPlayerId;
+  private String mMyPlayerId;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -33,12 +37,21 @@ public class MainActivity extends Activity {
         new GamesAPIConnectionCallbacks(),
         new GamesAPIOnConnectionFailedListener());
 
-    View playView = findViewById(R.id.play);
+    View playView = findViewById(R.id.playAlone);
     playView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         Intent intent = new Intent(MainActivity.this, Game.class);
         startActivityForResult(intent, 0);
+      }
+    });
+
+    View inviteFriendsView = findViewById(R.id.inviteFriends);
+    inviteFriendsView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Intent selectPlayersIntent = mGamesClient.getSelectPlayersIntent(1, 1);
+        startActivityForResult(selectPlayersIntent, REQUEST_SELECT_PLAYERS);
       }
     });
   }
@@ -68,11 +81,12 @@ public class MainActivity extends Activity {
       break;
     case REQUEST_SELECT_PLAYERS:
       if (resultCode == Activity.RESULT_OK) {
-        String opponentPlayerId = mOpponentPlayerId;
-        mOpponentPlayerId = intent.getStringArrayListExtra(
-            GamesClient.EXTRA_PLAYERS).get(0);
+        ArrayList<String> players = intent.getStringArrayListExtra(
+            GamesClient.EXTRA_PLAYERS);
+        String opponentPlayerId = players.get(0);
         Intent gameIntent = new Intent(MainActivity.this, Game.class);
-        gameIntent.getExtras().putString("OpponentPlayerID", opponentPlayerId);
+        gameIntent.putExtra(MY_PLAYER_ID, mMyPlayerId);
+        gameIntent.putExtra(OPPONENT_PLAYER_ID, opponentPlayerId);
         startActivityForResult(gameIntent, REQUEST_GAME);
       }
       break;
@@ -115,11 +129,9 @@ public class MainActivity extends Activity {
     @Override
     public void onConnected() {
       Log.d(TAG, "connected");
-      String playerId = mGamesClient.getCurrentPlayerId();
-      Toast.makeText(MainActivity.this, playerId + " is connected.",
+      mMyPlayerId = mGamesClient.getCurrentPlayerId();
+      Toast.makeText(MainActivity.this, mMyPlayerId + " is connected.",
           Toast.LENGTH_LONG).show();
-      Intent selectPlayers = mGamesClient.getSelectPlayersIntent(2, 2);
-      startActivityForResult(selectPlayers, REQUEST_SELECT_PLAYERS);
     }
 
     @Override
