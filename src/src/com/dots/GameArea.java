@@ -86,6 +86,8 @@ public class GameArea extends View {
   protected void onDraw(Canvas canvas) {
      super.onDraw(canvas);
      drawGrid(canvas);
+     drawDots(canvas);
+     //for (int)
      // renderGameState();
      /*
      for(Line line : lines) {
@@ -96,10 +98,20 @@ public class GameArea extends View {
      }
      */
   }
+  private void drawDots(Canvas canvas) {
+    //for ()
+    for (Dot d : mGameState.getDots(Dot.Colour.CL_RED)) {
+      d.draw(canvas, mPaint);
+    }
+    for (Dot d : mGameState.getDots(Dot.Colour.CL_BLUE)) {
+      d.draw(canvas, mPaint);
+    }
+  }
   
   public void erase() {
+    mGameState.reset();
     invalidate();
-    Log.d("123", "erased grid");
+    //Log.d("123", "erased grid");
   }
 
   @Override
@@ -117,17 +129,13 @@ public class GameArea extends View {
         invalidate();
         return true;
      */
-    case MotionEvent.ACTION_UP:
+    case MotionEvent.ACTION_DOWN:
       xx = event.getX();
       yy = event.getY();
-      /*
-      currentLine.x1 = event.getX();
-        currentLine.y1 = event.getY();
-        lines.add(currentLine);
-        currentLine = null;
-        
-      */
-      //invalidate();
+      Log.d("action up", "at " + xx + ", " + yy);
+      mGameState.addDot(mGameState.getCurrentTurn(), (int)xx, (int)yy);
+      mGameState.flipTurn();
+      invalidate();
       //canvas.drawCircle(x, y, r, mPaint);
       return true;
     }

@@ -2,35 +2,41 @@ package com.dots;
 
 import java.util.ArrayList;
 
-import com.dots.Dot.Color;
+import com.dots.Dot.Colour;
 
 public class GameState {
   //
   private ArrayList<Dot> mRedDots;
   private ArrayList<Dot> mBlueDots;
-  private Dot.Color mCurrentTurn;
+  private Dot.Colour mCurrentTurn;
   
   public GameState() {
     //
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();
-    mCurrentTurn = Color.BLUE;
+    reset();
+  }
+  
+  public void reset() {
+    mRedDots.clear();
+    mBlueDots.clear();
+    mCurrentTurn = Colour.CL_BLUE;
   }
 
-  public void addDot(Dot.Color color, int atX, int atY) {
+  public void addDot(Dot.Colour color, int atX, int atY) {
     getDots(color).add(new Dot(color, atX, atY));
   }
   
-  public ArrayList<Dot> getDots(Dot.Color color) {
+  public ArrayList<Dot> getDots(Dot.Colour color) {
     switch (color) {
-    case RED: return mRedDots;
-    case BLUE: return mBlueDots;
+    case CL_RED: return mRedDots;
+    case CL_BLUE: return mBlueDots;
     }
     return null;
   }
   
-  public Dot.Color getCurrentTurn() { return mCurrentTurn; }
+  public Dot.Colour getCurrentTurn() { return mCurrentTurn; }
   public void flipTurn() {
-    mCurrentTurn = mCurrentTurn == Color.BLUE ? Color.RED : Color.BLUE;
+    mCurrentTurn = mCurrentTurn == Colour.CL_BLUE ? Colour.CL_RED : Colour.CL_BLUE;
   }
 }
