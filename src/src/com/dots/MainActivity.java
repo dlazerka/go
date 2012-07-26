@@ -18,18 +18,19 @@ import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
 import com.google.android.gms.games.data.match.Match;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements TurnBasedMatchListener {
+  // If true, shows Play Alone button, if false proceeds to Invite Friends immediately.
+  public static final boolean DEVMODE = true;
+
   public static final String TAG = "Dots";
 
   private static final int REQUEST_RECONNECT_GAMES_API = 9000;
   private static final int REQUEST_CODE_CREATE_MATCH = 9001;
   public static final int REQUEST_SELECT_PLAYERS = 9002;
 
-  public static final String OPPONENT_PLAYER_ID = "OpponentPlayerID";
   public static final String MY_PLAYER_ID = "MyPlayerID";
-  private String mMyPlayerId;
   private String mOpponentPlayerId;
-  private GamesClient mGamesClient;
+  public static GamesClient mGamesClient;
   private TurnBasedMatchImpl mMatch;
 
   @Override
@@ -73,7 +74,7 @@ public class MainActivity extends Activity {
           ArrayList<String> players = intent.getStringArrayListExtra(GamesClient.EXTRA_PLAYERS);
           mOpponentPlayerId = players.get(0);
 
-          mGamesClient.createTurnBasedMatch(new MatchListener(), Match.INVITE_TYPE_INVITE_ALL_NOW,
+          mGamesClient.createTurnBasedMatch(this, Match.INVITE_TYPE_INVITE_ALL_NOW,
               Match.MATCH_VARIANT_ANY, mOpponentPlayerId);
         }
         break;
@@ -109,8 +110,7 @@ public class MainActivity extends Activity {
     inviteFriendsView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        Intent selectPlayersIntent = mGamesClient.getSelectPlayersIntent(1, 1);
-        startActivityForResult(selectPlayersIntent, REQUEST_SELECT_PLAYERS);
+        goToInviteFriends();
       }
     });
   }
@@ -118,9 +118,9 @@ public class MainActivity extends Activity {
   private void startMatch() {
     Intent intent = new Intent(MainActivity.this, Game.class);
     intent.putExtra(GamesClient.EXTRA_TURN_BASED_MATCH, mMatch);
+    intent.putExtra(MY_PLAYER_ID, mGamesClient.getCurrentPlayerId());
     startActivity(intent);
   }
-
 
   private final class GamesAPIConnectionListener implements ConnectionCallbacks,
       OnConnectionFailedListener {
@@ -128,7 +128,11 @@ public class MainActivity extends Activity {
     public void onConnected() {
       Log.d(TAG, "Connected to Games API");
       if (mMatch == null) {
-        showButtons();
+        if (DEVMODE) {
+          showButtons();
+        } else {
+          goToInviteFriends();
+        }
       } else {
         startMatch();
       }
@@ -156,29 +160,36 @@ public class MainActivity extends Activity {
     }
   }
 
-  private final class MatchListener implements TurnBasedMatchListener {
-    @Override
-    public void onTurnBasedMatchLoaded(TurnBasedMatchImpl match) {
-      switch (match.getStatus()) {
-        case Match.MATCH_STATUS_ACTIVE:
-          Log.i(TAG, "MATCH_STATUS_ACTIVE");
-          mMatch = match;
-          startMatch();
-          break;
-        case Match.MATCH_STATUS_AUTO_MATCHING:
-          Log.i(TAG, "MATCH_STATUS_AUTO_MATCHING");
-          break;
-        case Match.MATCH_STATUS_COMPLETE:
-          Log.i(TAG, "MATCH_STATUS_COMPLETE");
-          break;
-        case Match.MATCH_STATUS_CONNECTING:
-          Log.i(TAG, "MATCH_STATUS_CONNECTING");
-          break;
-        case Match.MATCH_STATUS_INVITING:
-          Log.i(TAG, "MATCH_STATUS_INVITING");
-          break;
-      }
+  @Override
+  public void onTurnBasedMatchLoaded(TurnBasedMatchImpl match) {
+    if (match == null) {
+      Toast.makeText(this, "Loaded match is null", Toast.LENGTH_LONG).show();
+      return;
     }
+    switch (match.getStatus()) {
+      case Match.MATCH_STATUS_ACTIVE:
+        Log.i(TAG, "MATCH_STATUS_ACTIVE");
+        mMatch = match;
+        startMatch();
+        break;
+      case Match.MATCH_STATUS_AUTO_MATCHING:
+        Log.i(TAG, "MATCH_STATUS_AUTO_MATCHING");
+        break;
+      case Match.MATCH_STATUS_COMPLETE:
+        Log.i(TAG, "MATCH_STATUS_COMPLETE");
+        break;
+      case Match.MATCH_STATUS_CONNECTING:
+        Log.i(TAG, "MATCH_STATUS_CONNECTING");
+        break;
+      case Match.MATCH_STATUS_INVITING:
+        Log.i(TAG, "MATCH_STATUS_INVITING");
+        break;
+    }
+  }
+
+  private void goToInviteFriends() {
+    Intent selectPlayersIntent = mGamesClient.getSelectPlayersIntent(1, 1);
+    startActivityForResult(selectPlayersIntent, REQUEST_SELECT_PLAYERS);
   }
 
 }

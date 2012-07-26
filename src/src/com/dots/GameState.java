@@ -3,9 +3,13 @@ package com.dots;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import com.dots.Dot.Colour;
+import android.util.Log;
 
-public class GameState {
+import com.dots.Dot.Colour;
+import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
+import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
+
+public class GameState implements TurnBasedMatchListener {
   //
   public static final int SIZE = 11;
   private ArrayList<Dot> mRedDots;
@@ -15,8 +19,24 @@ public class GameState {
   private Dot[][] mGrid;
   private Stack mStack;
   private ArrayList<Dot> mSurrounded;
-  
+  private TurnBasedMatchImpl mMatch;
+  private String mMyPlayerId;
+  private String mOpponentPlayerId;
+
+  public GameState(TurnBasedMatchImpl match, String myPlayerId) {
+    this();
+    mMatch = match;
+    mMyPlayerId = myPlayerId;
+    ArrayList<String> playerIds = match.getPlayerIds();
+    if (playerIds.get(0).equals(myPlayerId)) {
+      mOpponentPlayerId = playerIds.get(1);
+    } else {
+      mOpponentPlayerId = playerIds.get(0);
+    }
+  }
+
   public GameState() {
+
     //
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();
@@ -26,7 +46,7 @@ public class GameState {
     mSurrounded = new ArrayList<Dot>();
     reset();
   }
-  
+
   public void reset() {
     mLastTurnId = 0;
     mRedDots.clear();
@@ -37,7 +57,7 @@ public class GameState {
         mGrid[i][j] = null;
     mStack.clear();
   }
-  
+
   private int rayCount(int startX, int startY) {
     int result = 0;
     for (int i = 1; startY + i < SIZE; ++i) {
@@ -64,7 +84,7 @@ public class GameState {
     flipTurn();
     return true;
   }
-  
+
   public ArrayList<Dot> getDots(Dot.Colour color) {
     switch (color) {
     case CL_RED: return mRedDots;
@@ -72,13 +92,32 @@ public class GameState {
     }
     return null;
   }
-  
-  public Dot.Colour getCurrentTurn() { return mCurrentTurn; }
-  private void flipTurn() {
-    mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
-    ++mLastTurnId;
+
+  public Dot.Colour getCurrentTurn() {
+    if (mMatch == null) {
+    return mCurrentTurn;
+    } else {
+      if (mMatch.getPendingPlayerId().equals(mMyPlayerId)) {
+        return Dot.Colour.CL_RED;
+      } else {
+        return Dot.Colour.CL_BLUE;
+      }
+    }
   }
-  
+  private void flipTurn() {
+    if (mMatch == null) {
+      mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
+      ++mLastTurnId;
+    } else {
+      MainActivity.mGamesClient.takeTurn(this, mMatch.getMatchId(), new byte[] {}, mOpponentPlayerId);
+    }
+  }
+
+  @Override
+  public void onTurnBasedMatchLoaded(TurnBasedMatchImpl arg0) {
+    Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState");
+  }
+
   private int numSurrounded(Dot.Colour color) {
     mSurrounded.clear();
     ArrayList<Dot> dots = getDots(color);
@@ -104,7 +143,7 @@ public class GameState {
     }
     return mSurrounded.size();
   }
-  
+
   private boolean search(Dot d) {
     if (mStack.indexOf(d) >= 0) {
       return false;
@@ -131,7 +170,7 @@ public class GameState {
       /*
       if (search(nd)) {
         // i <-> opposite.
-        
+
         return true;
       }
       */
