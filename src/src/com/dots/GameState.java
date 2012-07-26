@@ -1,9 +1,11 @@
 package com.dots;
 
 import java.util.ArrayList;
-import java.util.Stack;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import android.util.Log;
+import android.util.Pair;
 
 import com.dots.Dot.Colour;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
@@ -15,10 +17,8 @@ public class GameState implements TurnBasedMatchListener {
   private ArrayList<Dot> mRedDots;
   private ArrayList<Dot> mBlueDots;
   private Dot.Colour mCurrentTurn;
-  private int mLastTurnId;
   private Dot[][] mGrid;
-  private Stack mStack;
-  private ArrayList<Dot> mSurrounded;
+  private int[][] mDisposition;
   private TurnBasedMatchImpl mMatch;
   private String mMyPlayerId;
   private String mOpponentPlayerId;
@@ -36,52 +36,151 @@ public class GameState implements TurnBasedMatchListener {
   }
 
   public GameState() {
-
-    //
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();
     mGrid = new Dot[SIZE][SIZE];
-    mStack = new Stack<Dot>();
-    //
-    mSurrounded = new ArrayList<Dot>();
+    mDisposition = new int[SIZE][SIZE];
     reset();
   }
 
   public void reset() {
-    mLastTurnId = 0;
     mRedDots.clear();
     mBlueDots.clear();
     mCurrentTurn = Colour.CL_BLUE;
     for (int i = 0; i < SIZE; ++i)
       for (int j = 0; j < SIZE; ++j)
         mGrid[i][j] = null;
-    mStack.clear();
-  }
 
-  private int rayCount(int startX, int startY) {
-    int result = 0;
-    for (int i = 1; startY + i < SIZE; ++i) {
-      Dot d = mGrid[startX][startY + i];
-      if (d == null) continue;
-      for (int j = 0; j < Dot.NUM_DIRECTIONS; ++j) if (Dot.dx[j] == -1 && d.neignbours[j]) {
-        ++result;
-        break;
+    for (int i = 0; i < SIZE; ++i) {
+      for (int j = 0; j < SIZE; ++j) {
+        if (mDisposition[i][j] != -1)
+        mDisposition[i][j] = -1;
       }
     }
-    return result;
   }
 
+  private boolean isDiagBlocked(int x, int y, int cl, int dir) {
+    if (Dot.dx[dir] == 0 || Dot.dy[dir] == 0) return false;
+    // check
+    return mDisposition[x + Dot.dx[dir]][y] == cl && mDisposition[x][y + Dot.dy[dir]] == cl;
+  }
+
+  private void search(int startX, int startY, int cl, int ns, int[][] mm) {
+    if (mm[startX][startY] != -1) return;
+    Queue<Pair<Integer, Integer>> q = new LinkedList<Pair<Integer, Integer>>();
+    q.add(new Pair<Integer, Integer>(startX, startY));
+    mm[startX][startY] = ns;
+    //while ()
+    while (!q.isEmpty()) {
+      //
+      Pair<Integer, Integer> p = q.poll();
+      int x = p.first.intValue();
+      int y = p.second.intValue();
+      for (int i = 0; i < Dot.NUM_DIRECTIONS; ++i) {
+        //
+        int nx = x + Dot.dx[i], ny = y + Dot.dy[i];
+        if (0 <= nx && nx < SIZE && 0 <= ny && ny < SIZE && mm[nx][ny] == -1 &&
+            !isDiagBlocked(x, y, cl, i)) {
+          mm[nx][ny] = ns;
+          q.add(new Pair<Integer, Integer>(nx, ny));
+        }
+      }
+    }
+  }
+  
+  static int cl2int(Dot.Colour c) {
+    switch (c) {
+      case CL_RED: return 1000;
+      case CL_BLUE: return 2000;
+    }
+    return 3000;
+  }
+  
+  private void fill(Colour color) {
+    //
+    //mDisposition = new int[SIZE][SIZE];
+    int cl = cl2int(color);
+    int[][] mm = new int[SIZE][SIZE];
+    for (int i = 0; i < SIZE; ++i) {
+      for (int j = 0; j < SIZE; ++j) {
+        if (mDisposition[i][j] == cl) {
+          mm[i][j] = cl;
+        } else {
+          mm[i][j] = -1;
+        }
+      }
+    }
+    
+    for (int i = 0, ns = 0; i < SIZE; ++i) {
+      // start at (i, 0)
+      search(i, 0, cl, ns++, mm);
+      search(i, SIZE - 1, cl, ns++, mm);
+      search(0, i, cl, ns++, mm);
+      search(SIZE - 1, i, cl, ns++, mm);
+    }
+    
+    int numSurrounded = 0;
+    for (int i = 0; i < SIZE; ++i) {
+      for (int j = 0; j < SIZE; ++j) {
+        if (mm[i][j] == -1) {
+          if (mDisposition[i][j] != cl && mDisposition[i][j] != -1) {
+            ++numSurrounded;
+          }
+          mDisposition[i][j] = cl;
+        }
+      }
+    }
+    if (numSurrounded > 0) {
+      // draw the border.
+      // TODO(rustema): add a better border computation.
+      for (int i = 0; i < SIZE; ++i)
+        for (int j = 0; j < SIZE; ++j) {
+          //
+          if (mGrid[i][j] != null && cl2int(mGrid[i][j].color) == cl) {
+            for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
+              int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
+              if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] != cl &&
+                  mm[ni][nj] >= 0) {
+                mm[i][j] = -2;
+              }
+            }
+          }
+        }
+      for (int i = 0; i < SIZE; ++i) 
+        for (int j = 0; j < SIZE; ++j) if (mm[i][j] == -2) {
+          for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
+            int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
+            if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] == -2) {
+              // i -> ni
+              mGrid[i][j].neignbours[k] = true;
+            }
+          }
+        }
+    }
+  }
+  
   public boolean addDot(Dot.Colour color, int atX, int atY) {
-    if (mGrid[atX][atY] != null || (rayCount(atX, atY) & 1) > 0) {
+    if (mGrid[atX][atY] != null || mDisposition[atX][atY] != -1) {
       return false;
     }
     Dot d = new Dot(color, atX, atY);
     getDots(color).add(d);
     mGrid[atX][atY] = d;
-    search(d);
-      //mStack
-    //}
+    mDisposition[atX][atY] = cl2int(mCurrentTurn);
+    
+    fill(mCurrentTurn);
     flipTurn();
+    /*
+    for (int i = 0; i < SIZE; ++i) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("line " + i + ":");
+      for (int j = 0; j < SIZE; ++j) {
+        sb.append(" " + mDisposition[i][j]);
+      }
+      Log.d("disp:", sb.toString());
+    }
+    Log.d("------", "-----------");
+    */
     return true;
   }
 
@@ -107,75 +206,13 @@ public class GameState implements TurnBasedMatchListener {
   private void flipTurn() {
     if (mMatch == null) {
       mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
-      ++mLastTurnId;
     } else {
       MainActivity.mGamesClient.takeTurn(this, mMatch.getMatchId(), new byte[] {}, mOpponentPlayerId);
     }
   }
-
+  
   @Override
   public void onTurnBasedMatchLoaded(TurnBasedMatchImpl arg0) {
     Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState");
-  }
-
-  private int numSurrounded(Dot.Colour color) {
-    mSurrounded.clear();
-    ArrayList<Dot> dots = getDots(color);
-    for (Dot d : dots) if (!d.isSurrounded) {
-      int sign = 0;
-      int n = mStack.size();
-      boolean ok = true;
-      for (int i = 0; i < n; ++i) {
-        Dot cur = (Dot)mStack.get(i);
-        Dot next = (Dot)mStack.get(i + 1 < n ? i + 1 : 0);
-        int dx1 = d.x - cur.x, dy1 = d.y - cur.y;
-        int dx2 = next.x - cur.x, dy2 = next.y - cur.y;
-        int vp = dx1 * dy2 - dx2 * dy1;
-        if (vp > 0) vp = 1;
-        if (vp < 0) vp = -1;
-        if (sign == 0) sign = vp;
-        else if (sign != vp) {
-          ok = false;
-          break;
-        }
-      }
-      if (ok) mSurrounded.add(d);
-    }
-    return mSurrounded.size();
-  }
-
-  private boolean search(Dot d) {
-    if (mStack.indexOf(d) >= 0) {
-      return false;
-    }
-    mStack.push(d);
-    for (int i = 0; i < Dot.NUM_DIRECTIONS; ++i) {
-      int nx = d.getNx(i), ny = d.getNy(i);
-      if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE) continue;
-      Dot nd = mGrid[nx][ny];
-      if (nd == null || nd.color != d.color || nd.isSurrounded || nd == mStack.peek()) continue;
-      if (mStack.size() >= 4 && nd == mStack.get(0) && numSurrounded(Dot.oppositeColor(d.color)) > 0 ||
-          search(nd)) {
-        // got it.
-        if (mSurrounded.size() > 0) {
-          for (Dot s : mSurrounded) {
-            s.isSurrounded = true;
-          }
-          mSurrounded.clear();
-        }
-        d.neignbours[i] = nd.neignbours[Dot.oppositeDirection(i)] = true;
-        mStack.pop();
-        return true;
-      }
-      /*
-      if (search(nd)) {
-        // i <-> opposite.
-
-        return true;
-      }
-      */
-    }
-    mStack.pop();
-    return false;
   }
 }
