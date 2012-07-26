@@ -263,13 +263,15 @@ public class GameState implements TurnBasedMatchListener {
     for (Dot d : mBlueDots) {
       mGrid[d.x][d.y] = d;
     }
-    //private Dot.Colour mCurrentTurn;
-    /*
-    private Dot[][] mGrid;
-    private int[][] mDisposition;
-    private TurnBasedMatchImpl mMatch;
-    private String mMyPlayerId;
-    private String mOpponentPlayerId;
-    */
+  }
+  
+  public int getScore(Dot.Colour color) {
+    ArrayList<Dot> opponent = getDots(Dot.oppositeColor(color));
+    int opponentColor = cl2int(Dot.oppositeColor(color));
+    int result = 0;
+    for (Dot d : opponent) {
+      if (mDisposition[d.x][d.y] != opponentColor) ++result;
+    }
+    return result;
   }
 }
