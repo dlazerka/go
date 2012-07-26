@@ -8,18 +8,35 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.dots.Dot.Colour;
+import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
+import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
-public class GameState {
+public class GameState implements TurnBasedMatchListener {
   //
   public static final int SIZE = 11;
   private ArrayList<Dot> mRedDots;
   private ArrayList<Dot> mBlueDots;
   private Dot.Colour mCurrentTurn;
   private Dot[][] mGrid;
-  
   private int[][] mDisposition;
-  
+  private TurnBasedMatchImpl mMatch;
+  private String mMyPlayerId;
+  private String mOpponentPlayerId;
+
+  public GameState(TurnBasedMatchImpl match, String myPlayerId) {
+    this();
+    mMatch = match;
+    mMyPlayerId = myPlayerId;
+    ArrayList<String> playerIds = match.getPlayerIds();
+    if (playerIds.get(0).equals(myPlayerId)) {
+      mOpponentPlayerId = playerIds.get(1);
+    } else {
+      mOpponentPlayerId = playerIds.get(0);
+    }
+  }
+
   public GameState() {
+
     //
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();
@@ -27,7 +44,7 @@ public class GameState {
     mDisposition = new int[SIZE][SIZE];
     reset();
   }
-  
+
   public void reset() {
     mRedDots.clear();
     mBlueDots.clear();
@@ -168,7 +185,7 @@ public class GameState {
     */
     return true;
   }
-  
+
   public ArrayList<Dot> getDots(Dot.Colour color) {
     switch (color) {
     case CL_RED: return mRedDots;
@@ -176,9 +193,23 @@ public class GameState {
     }
     return null;
   }
-  
-  public Dot.Colour getCurrentTurn() { return mCurrentTurn; }
+
+  public Dot.Colour getCurrentTurn() {
+    if (mMatch == null) {
+    return mCurrentTurn;
+    } else {
+      if (mMatch.getPendingPlayerId().equals(mMyPlayerId)) {
+        return Dot.Colour.CL_RED;
+      } else {
+        return Dot.Colour.CL_BLUE;
+      }
+    }
+  }
   private void flipTurn() {
-    mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
+    if (mMatch == null) {
+      mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
+    } else {
+      MainActivity.mGamesClient.takeTurn(this, mMatch.getMatchId(), new byte[] {}, mOpponentPlayerId);
+    }
   }
 }
