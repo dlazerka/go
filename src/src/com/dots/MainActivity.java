@@ -99,7 +99,7 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
     playAloneView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-         Intent intent = new Intent(MainActivity.this, Game.class);
+         Intent intent = new Intent(MainActivity.this, GameActivity.class);
          startActivityForResult(intent, REQUEST_GAME);
       }
     });
@@ -114,7 +114,7 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
   }
 
   private void startMatch() {
-    Intent intent = new Intent(MainActivity.this, Game.class);
+    Intent intent = new Intent(MainActivity.this, GameActivity.class);
     intent.putExtra(GamesClient.EXTRA_TURN_BASED_MATCH, mMatch);
     intent.putExtra(MY_PLAYER_ID, mGamesClient.getCurrentPlayerId());
     startActivity(intent);

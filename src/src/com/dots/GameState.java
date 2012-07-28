@@ -37,9 +37,9 @@ public class GameState implements TurnBasedMatchListener {
   private String mMyPlayerId;
   private String mOpponentPlayerId;
   private GamesClient mGamesClient;
-  private Game mGameActivity;
+  private GameActivity mGameActivity;
 
-  public GameState(Game game, GamesClient gamesClient, TurnBasedMatchImpl match, String myPlayerId) {
+  public GameState(GameActivity game, GamesClient gamesClient, TurnBasedMatchImpl match, String myPlayerId) {
     this(game, gamesClient);
     mMatch = match;
     mMyPlayerId = myPlayerId;
@@ -52,7 +52,7 @@ public class GameState implements TurnBasedMatchListener {
     }
   }
 
-  public GameState(Game game, GamesClient gamesClient) {
+  public GameState(GameActivity game, GamesClient gamesClient) {
     mGameActivity = game;
     mGamesClient = gamesClient;
     mRedDots = new ArrayList<Dot>();

@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Game"
+            android:name=".GameActivity"
             android:label="@string/title_activity_game" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
