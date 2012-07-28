@@ -1,34 +1,27 @@
 package com.dots;
 
+import static com.dots.Util.TAG;
+
 import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionStatus;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
-import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
 import com.google.android.gms.games.data.match.Match;
-import com.google.android.gms.games.data.match.ParticipantBuffer;
-import com.google.android.gms.games.data.match.ParticipantImpl;
 import com.google.android.gms.games.data.match.PlayerResult;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
-public class MainActivity extends Activity implements TurnBasedMatchListener {
+public class MainActivity extends GamesAPIActivity implements TurnBasedMatchListener {
   // If true, shows Play Alone button, if false proceeds to Invite Friends immediately.
   public static final boolean DEVMODE = true;
 
-  public static final String TAG = "Dots";
 
-  private static final int REQUEST_RECONNECT_GAMES_API = 9000;
   private static final int REQUEST_CODE_CREATE_MATCH = 9001;
   public static final int REQUEST_SELECT_PLAYERS = 9002;
   public static final int REQUEST_GAME = 9003;
@@ -36,17 +29,12 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
   public static final String MY_PLAYER_ID = "MyPlayerID";
   public static final String SCORE = "Score";
   private String mOpponentPlayerId;
-  public static GamesClient mGamesClient;
   private TurnBasedMatchImpl mMatch;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    String appId = getString(R.string.app_id);
-    GamesAPIConnectionListener gamesAPIConnectionListener = new GamesAPIConnectionListener();
-    mGamesClient = new GamesClient(this, appId, gamesAPIConnectionListener,
-        gamesAPIConnectionListener);
 
     Intent intent = getIntent();
     // Check if the activity was launched by invitation to a match.
@@ -67,14 +55,7 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
     super.onStart();
     if (!mGamesClient.isConnected()) {
       setContentView(R.layout.activity_connecting);
-      mGamesClient.connect();
     }
-  }
-
-  @Override
-  protected void onStop() {
-    super.onStop();
-    mGamesClient.disconnect();
   }
 
   @Override
@@ -88,13 +69,6 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
 
           mGamesClient.createTurnBasedMatch(this, Match.INVITE_TYPE_INVITE_ALL_NOW,
               Match.MATCH_VARIANT_ANY, mOpponentPlayerId);
-        }
-        break;
-      case REQUEST_RECONNECT_GAMES_API:
-        if (resultCode == Activity.RESULT_OK) {
-          // We resolved ConnectionStatus error successfully.
-          // Try to connect again.
-          mGamesClient.connect();
         }
         break;
       case REQUEST_CODE_CREATE_MATCH:
@@ -121,8 +95,8 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
   private void showButtons() {
     setContentView(R.layout.activity_main);
 
-    View playView = findViewById(R.id.playAlone);
-    playView.setOnClickListener(new View.OnClickListener() {
+    View playAloneView = findViewById(R.id.playAlone);
+    playAloneView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
          Intent intent = new Intent(MainActivity.this, Game.class);
@@ -146,11 +120,15 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
     startActivity(intent);
   }
 
-  private final class GamesAPIConnectionListener implements ConnectionCallbacks,
-      OnConnectionFailedListener {
+  @Override
+  protected GamesAPIListener newGamesAPIListener() {
+    return new MyGamesAPIListener();
+  }
+
+  private class MyGamesAPIListener extends GamesAPIListener {
     @Override
     public void onConnected() {
-      Log.d(TAG, "Connected to Games API");
+      super.onConnected();
       if (mMatch == null) {
         if (DEVMODE) {
           showButtons();
@@ -159,27 +137,6 @@ public class MainActivity extends Activity implements TurnBasedMatchListener {
         }
       } else {
         startMatch();
-      }
-    }
-
-    @Override
-    public void onDisconnected() {
-      Log.d(TAG, "disconnected");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionStatus status) {
-      int errorCode = status.getErrorCode();
-      if (status.hasResolution()) {
-        try {
-          status.startResolutionForResult(MainActivity.this, REQUEST_RECONNECT_GAMES_API);
-        } catch (SendIntentException e) {
-          Log.e(TAG, "Unable to recover from a connection failure: " + errorCode + ".");
-          finish();
-        }
-      } else {
-        Log.e(TAG, "Did you install GmsCore.apk?");
-        finish();
       }
     }
   }

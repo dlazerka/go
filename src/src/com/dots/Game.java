@@ -1,22 +1,12 @@
 package com.dots;
 
+import static com.dots.Util.TAG;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.crypto.spec.DESedeKeySpec;
-
-import com.google.android.gms.common.ConnectionStatus;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
-import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
-import com.google.android.gms.games.GamesClient;
-import com.google.android.gms.games.data.match.PlayerResult;
-import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
-
-import android.app.Activity;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -26,9 +16,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-public class Game extends Activity {
-  private static final int REQUEST_RECONNECT_GAMES_API = 9000;
+import com.google.android.gms.games.GamesClient;
+import com.google.android.gms.games.data.match.PlayerResult;
+import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
+public class Game extends GamesAPIActivity {
   public GamesClient mGamesClient;
   private GameState mGameState;
   private TurnBasedMatchImpl mMatch;
@@ -42,11 +34,6 @@ public class Game extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_game);
     // getActionBar().setDisplayHomeAsUpEnabled(true);
-
-    String appId = getString(R.string.app_id);
-    GamesAPIConnectionListener gamesAPIConnectionListener = new GamesAPIConnectionListener();
-    mGamesClient = new GamesClient(this, appId, gamesAPIConnectionListener,
-        gamesAPIConnectionListener);
 
     Intent intent = getIntent();
     if (intent != null && intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {
@@ -106,11 +93,15 @@ public class Game extends Activity {
     }
   }
 
-  private final class GamesAPIConnectionListener implements ConnectionCallbacks,
-      OnConnectionFailedListener {
+  @Override
+  protected GamesAPIListener newGamesAPIListener() {
+    return new MyGamesAPIListener();
+  }
+
+  private class MyGamesAPIListener extends GamesAPIListener {
     @Override
     public void onConnected() {
-      Log.d(MainActivity.TAG, "Connected to Games API");
+      Log.d(TAG, "Connected to Games API");
       mGameArea.setVisibility(View.VISIBLE);
       if (mMatch != null) {
         try {
@@ -122,39 +113,6 @@ public class Game extends Activity {
         }
       }
     }
-
-    @Override
-    public void onDisconnected() {
-      Log.d(MainActivity.TAG, "disconnected");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionStatus status) {
-      int errorCode = status.getErrorCode();
-      if (status.hasResolution()) {
-        try {
-          status.startResolutionForResult(Game.this, REQUEST_RECONNECT_GAMES_API);
-        } catch (SendIntentException e) {
-          Log.e(MainActivity.TAG, "Unable to recover from a connection failure: " + errorCode + ".");
-          finish();
-        }
-      } else {
-        Log.e(MainActivity.TAG, "Did you install GmsCore.apk?");
-        finish();
-      }
-    }
-  }
-
-  @Override
-  protected void onStart() {
-    super.onStart();
-    mGamesClient.connect();
-  }
-
-  @Override
-  protected void onStop() {
-    super.onStop();
-    mGamesClient.disconnect();
   }
 
   @Override

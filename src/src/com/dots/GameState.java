@@ -1,5 +1,7 @@
 package com.dots;
 
+import static com.dots.Util.TAG;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -212,16 +214,24 @@ public class GameState implements TurnBasedMatchListener {
   }
 
   public Dot.Colour getCurrentTurn() {
+    /*
     if (mMatch == null) {
       return mCurrentTurn;
     } else {
-      String pendingPlayerId = mMatch.getPendingPlayerId();
+      mMatch.get
       if (pendingPlayerId.equals(mMyPlayerId)) {
-        return Dot.Colour.CL_RED;
+        return mCurrentTurn;
       } else {
         return null;
       }
     }
+    */
+    String pendingPlayerId = mMatch.getPendingPlayerId();
+    if (!pendingPlayerId.equals(mMyPlayerId)) {
+      return null;
+    }
+
+    return mCurrentTurn = mRedDots.size() == mBlueDots.size() ? Dot.Colour.CL_BLUE : Dot.Colour.CL_RED;
   }
 
   private void flipTurn() {
@@ -229,31 +239,31 @@ public class GameState implements TurnBasedMatchListener {
       mCurrentTurn = Dot.oppositeColor(mCurrentTurn);
     } else {
       try {
-        Log.i(MainActivity.TAG, mMyPlayerId + " made his turn");
+        Log.i(TAG, mMyPlayerId + " made his turn");
         byte[] state = serialize();
         mGamesClient.takeTurn(this, mMatch.getMatchId(), state, mOpponentPlayerId);
       } catch (IOException e) {
-        Log.e(MainActivity.TAG, e.getMessage());
+        Log.e(TAG, e.getMessage());
       }
     }
   }
 
   @Override
   public void onTurnBasedMatchLoaded(TurnBasedMatchImpl match) {
-    Log.w(MainActivity.TAG, "onTurnBasedMatchLoaded in GameState for player " + mMyPlayerId);
+    Log.w(TAG, "onTurnBasedMatchLoaded in GameState for player " + mMyPlayerId);
     if (match == null) {
       Toast.makeText(mGameActivity, "Match is null, quitting", Toast.LENGTH_LONG).show();
       mGameActivity.setResult(Activity.RESULT_CANCELED);
-      mGameActivity.finish();
+//      mGameActivity.finish();
       return;
     }
     mMatch = match;
     try {
       deserialize(match.getData());
     } catch (IOException e) {
-      Log.e(MainActivity.TAG, e.getMessage());
+      Log.e(TAG, e.getMessage());
     } catch (ClassNotFoundException e) {
-      Log.e(MainActivity.TAG, e.getMessage());
+      Log.e(TAG, e.getMessage());
     }
   }
 
