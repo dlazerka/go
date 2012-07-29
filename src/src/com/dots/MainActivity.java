@@ -4,6 +4,7 @@ import static com.dots.Util.TAG;
 
 import java.util.ArrayList;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;

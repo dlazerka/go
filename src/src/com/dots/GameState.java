@@ -214,24 +214,17 @@ public class GameState implements TurnBasedMatchListener {
   }
 
   public Dot.Colour getCurrentTurn() {
-    /*
     if (mMatch == null) {
       return mCurrentTurn;
     } else {
-      mMatch.get
-      if (pendingPlayerId.equals(mMyPlayerId)) {
-        return mCurrentTurn;
-      } else {
+      String pendingPlayerId = mMatch.getPendingPlayerId();
+      if (!pendingPlayerId.equals(mMyPlayerId)) {
+        // Not my turn.
         return null;
       }
+      mCurrentTurn = mRedDots.size() == mBlueDots.size() ? Dot.Colour.CL_BLUE : Dot.Colour.CL_RED;
+      return mCurrentTurn;
     }
-    */
-    String pendingPlayerId = mMatch.getPendingPlayerId();
-    if (!pendingPlayerId.equals(mMyPlayerId)) {
-      return null;
-    }
-
-    return mCurrentTurn = mRedDots.size() == mBlueDots.size() ? Dot.Colour.CL_BLUE : Dot.Colour.CL_RED;
   }
 
   private void flipTurn() {

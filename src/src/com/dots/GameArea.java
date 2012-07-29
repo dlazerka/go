@@ -29,7 +29,6 @@ public class GameArea extends View {
      setBackgroundColor(Color.WHITE);
      mPaint.setColor(Color.BLACK);
      mGameState = gameState;
-     //mCurrentDot = new Dot();
   }
 
   private float[] computeGridLines(Rect rect) {
@@ -50,17 +49,14 @@ public class GameArea extends View {
     float[] points = new float[numLines << 2];
 
     for (int i = 0, start = MARGIN, at = 0; i <= NUM_CELLS; ++i, start += mCellSize) {
-      //for ()
-      // horizontal.
-      // (start, l) -> (start, r)
       points[at++] = start;
-      points[at++] = l;
+      points[at++] = l + MARGIN;
       points[at++] = start;
       points[at++] = r;
       // (b, start) -> (t, start)
-      points[at++] = b;
+      points[at++] = t + MARGIN;
       points[at++] = start;
-      points[at++] = t;
+      points[at++] = b;
       points[at++] = start;
     }
     return points;
@@ -83,7 +79,7 @@ public class GameArea extends View {
      drawDots(canvas);
      displayScore(canvas);
   }
-  
+
   private void displayScore(Canvas canvas) {
     Rect rect = canvas.getClipBounds();
     int l = rect.left;
@@ -116,6 +112,7 @@ public class GameArea extends View {
           if (d.neignbours[i]) {
             float x1 = cell2Coord(d.getNx(i));
             float y1 = cell2Coord(d.getNy(i));
+            mPaint.setStrokeWidth(3);
             canvas.drawLine(x0, y0, x1, y1, mPaint);
           }
         }
@@ -127,7 +124,6 @@ public class GameArea extends View {
   }
 
   private void drawDots(Canvas canvas) {
-    //for ()
     drawDotsForColor(Dot.Colour.CL_BLUE, canvas);
     drawDotsForColor(Dot.Colour.CL_RED, canvas);
   }
@@ -135,7 +131,6 @@ public class GameArea extends View {
   public void erase() {
     mGameState.reset();
     invalidate();
-    //Log.d("123", "erased grid");
   }
 
   private int roundCoordinate(float t) {
