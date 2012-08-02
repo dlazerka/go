@@ -74,11 +74,15 @@ public class GameActivity extends GamesAPIActivity {
     surrenderButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
-        results.add(new PlayerResult(mGamesClient.getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
-        results.add(new PlayerResult(mOpponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
+        if (mMatch == null) {
+          finish();
+        } else {
+          ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
+          results.add(new PlayerResult(mGamesClient.getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
+          results.add(new PlayerResult(mOpponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
 
-        mGamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
+          mGamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
+        }
 //        finish();
 //        Intent intent2 = Game.this.getIntent();
 //        intent2.putExtra(MainActivity.SCORE, "10");
