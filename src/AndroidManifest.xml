@@ -13,13 +13,11 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        <activity
-            android:name=".MainActivity"
-            android:label="@string/dots" >
+        <activity android:name=".MainActivity" >
         </activity>
         <activity
             android:name=".GameActivity"
-            android:label="@string/dots" >
+            android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.dots.MainActivity" />

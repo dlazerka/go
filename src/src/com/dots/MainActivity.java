@@ -36,7 +36,6 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-
     Intent intent = getIntent();
     // Check if the activity was launched by invitation to a match.
     if (intent != null && intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {

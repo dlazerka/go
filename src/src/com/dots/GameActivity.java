@@ -53,23 +53,9 @@ public class GameActivity extends GamesAPIActivity {
 
   private void fillView() {
     setContentView(R.layout.activity_game);
-    LinearLayout container = (LinearLayout) findViewById(R.id.game_area);
-    Button eraseButton = (Button) findViewById(R.id.eraseButton);
     Button surrenderButton = (Button) findViewById(R.id.surrenderButton);
-
-    mGameArea = new GameArea(this, mGameState);
-    container.addView(mGameArea);
-
-    mGameArea.setLayoutParams(new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
-        LinearLayout.LayoutParams.MATCH_PARENT));
-
-    eraseButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        mGameArea.erase();
-      }
-    });
+    mGameArea = (GameArea) findViewById(R.id.desk);
+    mGameArea.setGameState(mGameState);
 
     surrenderButton.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -90,10 +76,6 @@ public class GameActivity extends GamesAPIActivity {
 //        finish();
       }
     });
-
-    if (!MainActivity.DEVMODE) {
-      eraseButton.setVisibility(View.GONE);
-    }
   }
 
   @Override
@@ -116,12 +98,6 @@ public class GameActivity extends GamesAPIActivity {
         }
       }
     }
-  }
-
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.activity_game, menu);
-    return true;
   }
 
   @Override

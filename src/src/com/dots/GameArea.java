@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,11 +22,14 @@ public class GameArea extends View {
 
   float[] mGrid;
 
-  public GameArea(Context context, GameState gameState) {
-    super(context);
+  public GameArea(Context context, AttributeSet attrs) {
+    super(context, attrs);
     mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    setBackgroundColor(Color.WHITE);
     mPaint.setColor(Color.BLACK);
+    mPaint.setStrokeCap(Paint.Cap.SQUARE);
+  }
+
+  void setGameState(GameState gameState) {
     mGameState = gameState;
   }
 
@@ -83,12 +87,12 @@ public class GameArea extends View {
     float textSize = mPaint.getTextSize();
     int color = mPaint.getColor();
     try {
-      mPaint.setTextSize(50);
+      mPaint.setTextSize(70);
       mPaint.setColor(Color.BLUE);
-      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_BLUE)), l + 30, b - 25,
+      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_BLUE)), l + 40, b - 25,
           mPaint);
       mPaint.setColor(Color.RED);
-      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_RED)), r - 50, b - 25,
+      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_RED)), r - 80, b - 25,
           mPaint);
     } finally {
       mPaint.setTextSize(textSize);
@@ -116,6 +120,7 @@ public class GameArea extends View {
       }
       //
     } finally {
+      mPaint.setStrokeWidth(1);
       mPaint.setColor(savedColor);
     }
   }
