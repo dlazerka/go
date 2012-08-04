@@ -5,6 +5,9 @@ import static com.dots.Util.TAG;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -31,6 +34,7 @@ public class GameActivity extends GamesAPIActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    GamesClient gamesClient = getGamesClient();
 
     Intent intent = getIntent();
     if (intent != null && intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {
@@ -38,7 +42,7 @@ public class GameActivity extends GamesAPIActivity {
       mMyPlayerId = intent.getExtras().getString(MainActivity.MY_PLAYER_ID);
       Toast.makeText(this, "Match with players: " + mMatch.getPlayerIds().toString(),
           Toast.LENGTH_LONG).show();
-      mGameState = new GameState(this, mGamesClient, mMatch, mMyPlayerId);
+      mGameState = new GameState(this, gamesClient, mMatch, mMyPlayerId);
       ArrayList<String> playerIds = mMatch.getPlayerIds();
       // ArrayList<ParticipantImpl> participants = match.getParticipantList()();
       if (playerIds.get(0).equals(mMyPlayerId)) {
@@ -47,7 +51,15 @@ public class GameActivity extends GamesAPIActivity {
         mOpponentPlayerId = playerIds.get(0);
       }
     } else {
-      mGameState = new GameState(this, mGamesClient);
+      mGameState = new GameState(this, gamesClient);
+    }
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+    if (getGamesClient().isConnected()) {
+
     }
   }
 
@@ -64,26 +76,22 @@ public class GameActivity extends GamesAPIActivity {
           finish();
         } else {
           ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
-          results.add(new PlayerResult(mGamesClient.getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
+          results.add(new PlayerResult(getGamesClient().getCurrentPlayerId(), 1,
+              PlayerResult.PLACING_UNINITIALIZED));
           results.add(new PlayerResult(mOpponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
 
-          mGamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
+          getGamesClient().finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
         }
-//        finish();
-//        Intent intent2 = Game.this.getIntent();
-//        intent2.putExtra(MainActivity.SCORE, "10");
-//        Game.this.setResult(Activity.RESULT_OK, intent2);
-//        finish();
       }
     });
   }
 
   @Override
-  protected GamesAPIListener newGamesAPIListener() {
-    return new MyGamesAPIListener();
+  protected GamesApiListener newGamesApiListener() {
+    return new MyGamesApiListener();
   }
 
-  private class MyGamesAPIListener extends GamesAPIListener {
+  private class MyGamesApiListener extends GamesApiListener {
     @Override
     public void onConnected() {
       super.onConnected();

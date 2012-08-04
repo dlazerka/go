@@ -1,53 +1,64 @@
 package com.dots;
 
 import static com.dots.Util.TAG;
-
-import com.google.android.gms.common.ConnectionStatus;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
-import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
-import com.google.android.gms.games.GamesClient;
-
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.util.Log;
 
-public abstract class GamesAPIActivity extends Activity {
-  protected GamesClient mGamesClient;
+import com.google.android.gms.common.ConnectionStatus;
+import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.games.GamesClient;
 
-  private static final int REQUEST_RECONNECT_GAMES_API = 9000;
+public abstract class GamesAPIActivity extends Activity implements OnConnectionFailedListener {
+  private static final int REQUEST_CODE_RECONNECT = 9000;
+  private GamesClient mGamesClient;
+  private GamesApiListener mGamesAPIListener;
+
+  protected abstract GamesApiListener newGamesApiListener();
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    String appId = getString(R.string.app_id);
-    GamesAPIListener gamesAPIListener = newGamesAPIListener();
-    mGamesClient = new GamesClient(
-        this,
-        appId,
-        gamesAPIListener,
-        gamesAPIListener);
+    mGamesAPIListener = newGamesApiListener();
+    Application application = (Application) getApplication();
+    mGamesClient = application.getGamesClient();
+    if (mGamesClient == null) {
+      mGamesClient = new GamesClient(
+          this,
+          getString(R.string.app_id),
+          mGamesAPIListener,
+          this);
+      application.setGamesClient(mGamesClient);
+    }
   }
 
   @Override
   protected void onStart() {
     super.onStart();
-    mGamesClient.connect();
+    if (!mGamesClient.isConnected()) {
+      mGamesClient.connect();
+    } else {
+      mGamesAPIListener.onConnected();
+    }
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    mGamesClient.disconnect();
+    if (mGamesClient.isConnected()) {
+      mGamesClient.disconnect();
+    }
   }
 
   @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-    super.onActivityResult(requestCode, resultCode, intent);
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
     switch (requestCode) {
-      case REQUEST_RECONNECT_GAMES_API:
+      case REQUEST_CODE_RECONNECT:
         if (resultCode == Activity.RESULT_OK) {
           // We resolved ConnectionStatus error successfully.
           // Try to connect again.
@@ -57,36 +68,24 @@ public abstract class GamesAPIActivity extends Activity {
     }
   }
 
-  protected abstract GamesAPIListener newGamesAPIListener();
-
-  protected abstract class GamesAPIListener
-      implements ConnectionCallbacks, OnConnectionFailedListener {
-
-    @Override
-    public void onConnected() {
-      Log.d(TAG, "Connected to Games API");
-    }
-
-    @Override
-    public void onDisconnected() {
-      Log.d(TAG, "Disconnected from Games API");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionStatus status) {
-      int errorCode = status.getErrorCode();
-      if (status.hasResolution()) {
-        try {
-          // This usually happen when user needs to authenticate into Games API.
-          status.startResolutionForResult(GamesAPIActivity.this, REQUEST_RECONNECT_GAMES_API);
-        } catch (SendIntentException e) {
-          Log.e(TAG, "Unable to recover from a connection failure: " + errorCode + ".");
-          finish();
-        }
-      } else {
-        Log.e(TAG, "Did you install GmsCore.apk?");
-        finish();
+  @Override
+  public void onConnectionFailed(ConnectionStatus status) {
+    int errorCode = status.getErrorCode();
+    if (status.hasResolution()) {
+      try {
+        // This usually happen when user needs to authenticate into Games API.
+        status.startResolutionForResult(this, REQUEST_CODE_RECONNECT);
+      } catch (SendIntentException e) {
+        Log.e(TAG, "Unable to recover from a connection failure: " + errorCode + ".");
+        this.finish();
       }
+    } else {
+      Log.e(TAG, "Did you install GmsCore.apk?");
+      this.finish();
     }
+  }
+
+  GamesClient getGamesClient() {
+    return mGamesClient;
   }
 }

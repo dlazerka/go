@@ -4,7 +4,6 @@ import static com.dots.Util.TAG;
 
 import java.util.ArrayList;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -53,7 +52,7 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
   @Override
   protected void onStart() {
     super.onStart();
-    if (!mGamesClient.isConnected()) {
+    if (!getGamesClient().isConnected()) {
       setContentView(R.layout.activity_connecting);
     }
   }
@@ -67,7 +66,7 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
           ArrayList<String> players = intent.getStringArrayListExtra(GamesClient.EXTRA_PLAYERS);
           mOpponentPlayerId = players.get(0);
 
-          mGamesClient.createTurnBasedMatch(this, Match.INVITE_TYPE_INVITE_ALL_NOW,
+          getGamesClient().createTurnBasedMatch(this, Match.INVITE_TYPE_INVITE_ALL_NOW,
               Match.MATCH_VARIANT_ANY, mOpponentPlayerId);
         }
         break;
@@ -83,9 +82,9 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
           String score = extras.getString(SCORE);
           TurnBasedMatchImpl match = extras.getParcelable(GamesClient.EXTRA_TURN_BASED_MATCH);
           ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
-          results.add(new PlayerResult(mGamesClient.getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
+          results.add(new PlayerResult(getGamesClient().getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
           results.add(new PlayerResult(mOpponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
-          mGamesClient.finishTurnBasedMatch(this, match.getMatchId(), new byte[] {}, results);
+          getGamesClient().finishTurnBasedMatch(this, match.getMatchId(), new byte[] {}, results);
           Toast.makeText(this, "Your score is " + score, Toast.LENGTH_LONG).show();
 //          mGamesClient.finishRealTimeMatch(mMatch, arg1, arg2)
 //        }
@@ -116,16 +115,16 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
   private void startMatch() {
     Intent intent = new Intent(MainActivity.this, GameActivity.class);
     intent.putExtra(GamesClient.EXTRA_TURN_BASED_MATCH, mMatch);
-    intent.putExtra(MY_PLAYER_ID, mGamesClient.getCurrentPlayerId());
+    intent.putExtra(MY_PLAYER_ID, getGamesClient().getCurrentPlayerId());
     startActivity(intent);
   }
 
   @Override
-  protected GamesAPIListener newGamesAPIListener() {
-    return new MyGamesAPIListener();
+  protected GamesApiListener newGamesApiListener() {
+    return new MyGamesApiListener();
   }
 
-  private class MyGamesAPIListener extends GamesAPIListener {
+  private class MyGamesApiListener extends GamesApiListener {
     @Override
     public void onConnected() {
       super.onConnected();
@@ -169,7 +168,7 @@ public class MainActivity extends GamesAPIActivity implements TurnBasedMatchList
   }
 
   private void goToInviteFriends() {
-    Intent selectPlayersIntent = mGamesClient.getSelectPlayersIntent(1, 1);
+    Intent selectPlayersIntent = getGamesClient().getSelectPlayersIntent(1, 1);
     startActivityForResult(selectPlayersIntent, REQUEST_SELECT_PLAYERS);
   }
 
