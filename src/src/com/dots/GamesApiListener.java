@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 
-abstract class GamesApiListener implements ConnectionCallbacks {
+class GamesApiListener implements ConnectionCallbacks {
   @Override
   public void onConnected() {
     Log.d(TAG, "Connected to Games API");

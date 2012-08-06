@@ -147,30 +147,25 @@ public class GameArea extends View {
   public boolean onTouchEvent(MotionEvent event) {
     float xx, yy;
     switch (event.getAction()) {
-    /*
-     * case MotionEvent.ACTION_DOWN: currentLine = new Line(event.getX(),
-     * event.getY()); invalidate(); return true; case MotionEvent.ACTION_MOVE:
-     * currentLine.x1 = event.getX(); currentLine.y1 = event.getY();
-     * invalidate(); return true;
-     */
       case MotionEvent.ACTION_DOWN:
-        xx = event.getX();
-        yy = event.getY();
-        if (MARGIN <= xx && xx <= MARGIN + mCellSize * NUM_CELLS &&
-            MARGIN <= yy && yy <= MARGIN + mCellSize * NUM_CELLS) {
-          Log.d("action up", "at " + xx + ", " + yy);
-          Colour currentTurn = mGameState.getCurrentTurn();
-          if (currentTurn != null) {
-            if (mGameState.addDot(currentTurn, roundCoordinate(xx), roundCoordinate(yy))) {
-              // mGameState.flipTurn();
-              invalidate();
-              return true;
+        if (!mGameState.isGamesApiConnected()) {
+          Toast.makeText(getContext(), "Connecting to Games API", Toast.LENGTH_LONG).show();
+        } else {
+          xx = event.getX();
+          yy = event.getY();
+          if (MARGIN <= xx && xx <= MARGIN + mCellSize * NUM_CELLS &&
+              MARGIN <= yy && yy <= MARGIN + mCellSize * NUM_CELLS) {
+            Log.d("action up", "at " + xx + ", " + yy);
+            Colour currentTurn = mGameState.getCurrentTurn();
+            if (currentTurn != null) {
+              if (mGameState.addDot(currentTurn, roundCoordinate(xx), roundCoordinate(yy))) {
+                invalidate();
+                return true;
+              }
+            } else {
+              Toast.makeText(getContext(), "Waiting for opponent's turn", Toast.LENGTH_LONG).show();
             }
-          } else {
-            Toast.makeText(getContext(), "Waiting for opponent's turn", Toast.LENGTH_LONG).show();
           }
-          // canvas.drawCircle(x, y, r, mPaint);
-
         }
     }
     return super.onTouchEvent(event);

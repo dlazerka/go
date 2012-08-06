@@ -2,7 +2,6 @@ package com.dots;
 
 import static com.dots.Util.TAG;
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
@@ -12,10 +11,10 @@ import com.google.android.gms.common.ConnectionStatus;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;
 
-public abstract class GamesApiActivity extends Activity implements OnConnectionFailedListener {
+public abstract class GamesApiActivity extends Activity implements OnConnectionFailedListener,
+    GamesApiAware {
   private static final int REQUEST_CODE_RECONNECT = 9000;
   private GamesClient mGamesClient;
-  private GamesApiListener mGamesAPIListener;
 
   protected abstract GamesApiListener newGamesApiListener();
 
@@ -23,35 +22,23 @@ public abstract class GamesApiActivity extends Activity implements OnConnectionF
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    mGamesAPIListener = newGamesApiListener();
-    Application application = (Application) getApplication();
-    mGamesClient = application.getGamesClient();
-    if (mGamesClient == null) {
-      mGamesClient = new GamesClient(
-          this,
-          getString(R.string.app_id),
-          mGamesAPIListener,
-          this);
-      application.setGamesClient(mGamesClient);
-    }
+    mGamesClient = new GamesClient(
+        this,
+        getString(R.string.app_id),
+        new GamesApiListener(),
+        this);
   }
 
   @Override
   protected void onStart() {
     super.onStart();
-    if (!mGamesClient.isConnected()) {
-      mGamesClient.connect();
-    } else {
-      mGamesAPIListener.onConnected();
-    }
+    mGamesClient.connect();
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    if (mGamesClient.isConnected()) {
-      mGamesClient.disconnect();
-    }
+    mGamesClient.disconnect();
   }
 
   @Override
@@ -88,4 +75,14 @@ public abstract class GamesApiActivity extends Activity implements OnConnectionF
   GamesClient getGamesClient() {
     return mGamesClient;
   }
+
+  @Override
+  public GamesClient getConnectedGamesClient() throws NotYetConnectedException {
+    if (mGamesClient.isConnected()) {
+      return mGamesClient;
+    } else {
+      throw new NotYetConnectedException();
+    }
+  }
+
 }

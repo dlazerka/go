@@ -13,16 +13,14 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import android.app.Activity;
-import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 
 import com.dots.Dot.Colour;
+import com.dots.GamesApiAware.NotYetConnectedException;
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
-import com.google.android.gms.games.data.match.ParticipantImpl;
-import com.google.android.gms.games.data.match.TurnBasedMatch;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
 public class GameState implements TurnBasedMatchListener {
@@ -36,11 +34,10 @@ public class GameState implements TurnBasedMatchListener {
   private TurnBasedMatchImpl mMatch;
   private String mMyPlayerId;
   private String mOpponentPlayerId;
-  private GamesClient mGamesClient;
   private GameActivity mGameActivity;
 
-  public GameState(GameActivity game, GamesClient gamesClient, TurnBasedMatchImpl match, String myPlayerId) {
-    this(game, gamesClient);
+  public GameState(GameActivity game, TurnBasedMatchImpl match, String myPlayerId) {
+    this(game);
     mMatch = match;
     mMyPlayerId = myPlayerId;
     ArrayList<String> playerIds = match.getPlayerIds();
@@ -52,14 +49,17 @@ public class GameState implements TurnBasedMatchListener {
     }
   }
 
-  public GameState(GameActivity game, GamesClient gamesClient) {
+  public GameState(GameActivity game) {
     mGameActivity = game;
-    mGamesClient = gamesClient;
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();
     mGrid = new Dot[SIZE][SIZE];
     mDisposition = new int[SIZE][SIZE];
     reset();
+  }
+
+  boolean isGamesApiConnected() {
+    return mGameActivity.getGamesClient().isConnected();
   }
 
   public void reset() {
@@ -234,9 +234,12 @@ public class GameState implements TurnBasedMatchListener {
       try {
         Log.i(TAG, mMyPlayerId + " made his turn");
         byte[] state = serialize();
-        mGamesClient.takeTurn(this, mMatch.getMatchId(), state, mOpponentPlayerId);
+        GamesClient gamesClient = mGameActivity.getConnectedGamesClient();
+        gamesClient.takeTurn(this, mMatch.getMatchId(), state, mOpponentPlayerId);
       } catch (IOException e) {
         Log.e(TAG, e.getMessage());
+      } catch (NotYetConnectedException e) {
+        throw new IllegalStateException("GamesClient must already be connected");
       }
     }
   }
@@ -247,7 +250,7 @@ public class GameState implements TurnBasedMatchListener {
     if (match == null) {
       Toast.makeText(mGameActivity, "Match is null, quitting", Toast.LENGTH_LONG).show();
       mGameActivity.setResult(Activity.RESULT_CANCELED);
-//      mGameActivity.finish();
+      // mGameActivity.finish();
       return;
     }
     mMatch = match;
@@ -281,6 +284,7 @@ public class GameState implements TurnBasedMatchListener {
     return buf;
   }
 
+  @SuppressWarnings("unchecked")
   public void deserialize(byte[] state) throws IOException, ClassNotFoundException {
     if (state == null) {
       return;
@@ -321,7 +325,8 @@ public class GameState implements TurnBasedMatchListener {
     int opponentColor = cl2int(Dot.oppositeColor(color));
     int result = 0;
     for (Dot d : opponent) {
-      if (mDisposition[d.x][d.y] != opponentColor) ++result;
+      if (mDisposition[d.x][d.y] != opponentColor)
+        ++result;
     }
     return result;
   }

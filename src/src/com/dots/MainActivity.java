@@ -18,22 +18,18 @@ import com.google.android.gms.games.data.match.PlayerResult;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
 public class MainActivity extends GamesApiActivity implements TurnBasedMatchListener {
-  // If true, shows Play Alone button, if false proceeds to Invite Friends immediately.
-  public static final boolean DEVMODE = true;
-
-
   private static final int REQUEST_CODE_CREATE_MATCH = 9001;
   public static final int REQUEST_SELECT_PLAYERS = 9002;
   public static final int REQUEST_GAME = 9003;
 
-  public static final String MY_PLAYER_ID = "MyPlayerID";
-  public static final String SCORE = "Score";
   private String mOpponentPlayerId;
   private TurnBasedMatchImpl mMatch;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+    showButtons();
 
     Intent intent = getIntent();
     // Check if the activity was launched by invitation to a match.
@@ -46,14 +42,6 @@ public class MainActivity extends GamesApiActivity implements TurnBasedMatchList
         Log.i(TAG, "Match found, showing GameActivity");
         mMatch = match;
       }
-    }
-  }
-
-  @Override
-  protected void onStart() {
-    super.onStart();
-    if (!getGamesClient().isConnected()) {
-      setContentView(R.layout.activity_connecting);
     }
   }
 
@@ -77,29 +65,28 @@ public class MainActivity extends GamesApiActivity implements TurnBasedMatchList
         }
         break;
       case REQUEST_GAME:
-//        if (resultCode == Activity.RESULT_OK) {
+        if (resultCode == Activity.RESULT_OK) {
           Bundle extras = intent.getExtras();
-          String score = extras.getString(SCORE);
+          String score = "10";
           TurnBasedMatchImpl match = extras.getParcelable(GamesClient.EXTRA_TURN_BASED_MATCH);
           ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
-          results.add(new PlayerResult(getGamesClient().getCurrentPlayerId(), 1, PlayerResult.PLACING_UNINITIALIZED));
+          results.add(new PlayerResult(getGamesClient().getCurrentPlayerId(), 1,
+              PlayerResult.PLACING_UNINITIALIZED));
           results.add(new PlayerResult(mOpponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
           getGamesClient().finishTurnBasedMatch(this, match.getMatchId(), new byte[] {}, results);
           Toast.makeText(this, "Your score is " + score, Toast.LENGTH_LONG).show();
-//          mGamesClient.finishRealTimeMatch(mMatch, arg1, arg2)
-//        }
+          // mGamesClient.finishRealTimeMatch(mMatch, arg1, arg2)
+        }
     }
   }
 
   private void showButtons() {
-    setContentView(R.layout.activity_main);
-
     View playAloneView = findViewById(R.id.playAlone);
     playAloneView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-         Intent intent = new Intent(MainActivity.this, GameActivity.class);
-         startActivityForResult(intent, REQUEST_GAME);
+        Intent intent = new Intent(MainActivity.this, GameActivity.class);
+        startActivityForResult(intent, REQUEST_GAME);
       }
     });
 
@@ -115,29 +102,12 @@ public class MainActivity extends GamesApiActivity implements TurnBasedMatchList
   private void startMatch() {
     Intent intent = new Intent(MainActivity.this, GameActivity.class);
     intent.putExtra(GamesClient.EXTRA_TURN_BASED_MATCH, mMatch);
-    intent.putExtra(MY_PLAYER_ID, getGamesClient().getCurrentPlayerId());
     startActivity(intent);
   }
 
   @Override
   protected GamesApiListener newGamesApiListener() {
-    return new MyGamesApiListener();
-  }
-
-  private class MyGamesApiListener extends GamesApiListener {
-    @Override
-    public void onConnected() {
-      super.onConnected();
-      if (mMatch == null) {
-        if (DEVMODE) {
-          showButtons();
-        } else {
-          goToInviteFriends();
-        }
-      } else {
-        startMatch();
-      }
-    }
+    return new GamesApiListener();
   }
 
   @Override
