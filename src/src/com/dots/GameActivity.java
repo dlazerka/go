@@ -23,7 +23,7 @@ import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.data.match.PlayerResult;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
-public class GameActivity extends GamesAPIActivity {
+public class GameActivity extends GamesApiActivity {
   private GameState mGameState;
   private TurnBasedMatchImpl mMatch;
   private String mMyPlayerId;

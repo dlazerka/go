@@ -12,7 +12,7 @@ import com.google.android.gms.common.ConnectionStatus;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;
 
-public abstract class GamesAPIActivity extends Activity implements OnConnectionFailedListener {
+public abstract class GamesApiActivity extends Activity implements OnConnectionFailedListener {
   private static final int REQUEST_CODE_RECONNECT = 9000;
   private GamesClient mGamesClient;
   private GamesApiListener mGamesAPIListener;

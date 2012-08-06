@@ -17,7 +17,7 @@ import com.google.android.gms.games.data.match.Match;
 import com.google.android.gms.games.data.match.PlayerResult;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
-public class MainActivity extends GamesAPIActivity implements TurnBasedMatchListener {
+public class MainActivity extends GamesApiActivity implements TurnBasedMatchListener {
   // If true, shows Play Alone button, if false proceeds to Invite Friends immediately.
   public static final boolean DEVMODE = true;
 
