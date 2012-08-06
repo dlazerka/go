@@ -1,12 +1,16 @@
 package com.dots;
 
 import static com.dots.Util.TAG;
+
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.dots.GamesApiAware.NotYetConnectedException;
 import com.google.android.gms.common.ConnectionStatus;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;

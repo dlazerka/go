@@ -6,5 +6,8 @@
     <string name="app_id">2149793076813558136</string>
     <string name="leaderboard_id">CgoI-OLD4Jyt5uodEKiL670F</string>
     <string name="acquisition_endpoint"></string>
+    <string name="surrender">Surrender</string>
+    <string name="white">ffffff</string>
+    <string name="defaultScore">0</string>
 
 </resources>

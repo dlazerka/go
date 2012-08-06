@@ -68,35 +68,26 @@ public class GameArea extends View {
     if (mGrid == null) {
       mGrid = computeGridLines(rect);
     }
+
     canvas.drawLines(mGrid, mPaint);
   }
 
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
+
     drawGrid(canvas);
     drawDots(canvas);
-    displayScore(canvas);
   }
 
-  private void displayScore(Canvas canvas) {
-    Rect rect = canvas.getClipBounds();
-    int l = rect.left;
-    int r = rect.right;
-    int b = rect.bottom;
-    float textSize = mPaint.getTextSize();
-    int color = mPaint.getColor();
-    try {
-      mPaint.setTextSize(70);
-      mPaint.setColor(Color.BLUE);
-      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_BLUE)), l + 40, b - 25,
-          mPaint);
-      mPaint.setColor(Color.RED);
-      canvas.drawText(Integer.toString(mGameState.getScore(Dot.Colour.CL_RED)), r - 80, b - 25,
-          mPaint);
-    } finally {
-      mPaint.setTextSize(textSize);
-      mPaint.setColor(color);
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+    if (getMeasuredWidth() < getMeasuredHeight()) {
+      getLayoutParams().height = getMeasuredWidth();
+    } else {
+      getLayoutParams().width = getMeasuredHeight();
     }
   }
 

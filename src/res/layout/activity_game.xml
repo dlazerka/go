@@ -1,22 +1,47 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/game_area"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical" >
+
+    <!-- layout_height will be rewritten -->
 
     <com.dots.GameArea
         android:id="@+id/desk"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#ffffff"
+        android:background="@color/white"
         android:padding="10dp" >
     </com.dots.GameArea>
+
+    <TextView
+        android:id="@+id/scoreBlue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/desk"
+        android:paddingLeft="@dimen/padding_large"
+        android:text="@string/defaultScore"
+        android:textColor="#00f"
+        android:textSize="50sp" />
+
+    <TextView
+        android:id="@+id/scoreRed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/desk"
+        android:paddingRight="@dimen/padding_large"
+        android:text="@string/defaultScore"
+        android:textColor="#f00"
+        android:textSize="50sp" />
 
     <Button
         android:id="@+id/surrenderButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Surrender" />
+        android:layout_alignParentBottom="true"
+        android:text="@string/surrender" />
 
-</LinearLayout>
+</RelativeLayout>
