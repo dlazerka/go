@@ -1,5 +1,7 @@
 package com.dots;
 
+import java.util.ArrayList;
+
 import com.dots.Dot.Colour;
 
 import android.content.Context;
@@ -9,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -76,6 +79,7 @@ public class GameArea extends View {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
+    drawDotBackgrounds(canvas);
     drawGrid(canvas);
     drawDots(canvas);
   }
@@ -104,7 +108,7 @@ public class GameArea extends View {
           if (d.neignbours[i]) {
             float x1 = cell2Coord(d.getNx(i));
             float y1 = cell2Coord(d.getNy(i));
-            mPaint.setStrokeWidth(3);
+            mPaint.setStrokeWidth(5);
             canvas.drawLine(x0, y0, x1, y1, mPaint);
           }
         }
@@ -113,6 +117,32 @@ public class GameArea extends View {
     } finally {
       mPaint.setStrokeWidth(1);
       mPaint.setColor(savedColor);
+    }
+  }
+  
+  private void drawDotBackgroundsForColor(int color, ArrayList<Pair<Integer, Integer>> dots, Canvas canvas) {
+    int savedColor = mPaint.getColor();
+    try {
+      // Color
+      mPaint.setColor(color);
+      for (Pair<Integer, Integer> d : dots) {
+        float x0 = cell2Coord(d.first);
+        float y0 = cell2Coord(d.second);
+        canvas.drawCircle(x0, y0, 15, mPaint);
+      }
+    } finally {
+      mPaint.setColor(savedColor);
+    }
+  }
+  
+  private void drawDotBackgrounds(Canvas canvas) {
+    //
+    ArrayList<Pair<Integer, ArrayList<Pair<Integer, Integer>>>> backgrounds =
+        mGameState.getDotBackgrounds();
+    for (Pair<Integer, ArrayList<Pair<Integer, Integer>>> bg : backgrounds) {
+      final int color = bg.first.intValue();
+      final ArrayList<Pair<Integer, Integer>> dots = bg.second;
+      drawDotBackgroundsForColor(color, dots, canvas);
     }
   }
 

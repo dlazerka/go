@@ -24,6 +24,16 @@ public class Dot implements Serializable {
   public static Colour oppositeColor(Colour color) {
     return color == Colour.CL_BLUE ? Colour.CL_RED : Colour.CL_BLUE;
   }
+  public static boolean isDirectionDiagonal(int direction) {
+    return dx[direction] != 0 && dy[direction] != 0;
+  }
+  public static int delta2dir(int dx0, int dy0) {
+    // dx, dy in {-1, 0, 1}.
+    for (int i = 0; i < NUM_DIRECTIONS; ++i) if (dx[i] == dx0 && dy[i] == dy0) {
+      return i;
+    }
+    return -1;
+  }
 
   public Dot(Colour color, int x, int y) {
     this.color = this.finalColour = color;

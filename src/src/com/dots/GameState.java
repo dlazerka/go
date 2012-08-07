@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
@@ -79,7 +80,7 @@ public class GameState implements TurnBasedMatchListener {
   }
 
   private boolean isDiagBlocked(int x, int y, int cl, int dir) {
-    if (Dot.dx[dir] == 0 || Dot.dy[dir] == 0)
+    if (!Dot.isDirectionDiagonal(dir))
       return false;
     // check
     return mDisposition[x + Dot.dx[dir]][y] == cl && mDisposition[x][y + Dot.dy[dir]] == cl;
@@ -176,11 +177,44 @@ public class GameState implements TurnBasedMatchListener {
               int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
               if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] == -2) {
                 // i -> ni
+                if (Dot.isDirectionDiagonal(k)) {
+                  // If the diagonal is redundant and any of its corresponding corners
+                  // is already in the border, skip drawing an edge along the diagonal.
+                  // Diagonal: (i, j) - (ni, nj), corner vertices: (i, nj) && (ni, j).
+                  if (mm[i][nj] == -2 || mm[ni][j] == -2) {
+                    continue;
+                  }
+                }
                 mGrid[i][j].neignbours[k] = true;
               }
             }
           }
     }
+  }
+  
+  public ArrayList<Pair<Integer , ArrayList<Pair<Integer, Integer>>>> getDotBackgrounds() {
+    ArrayList<Pair<Integer, Integer>> reds = new ArrayList<Pair<Integer, Integer>>();
+    ArrayList<Pair<Integer, Integer>> blues = new ArrayList<Pair<Integer, Integer>>();
+    ArrayList<Pair<Integer, Integer>> none = new ArrayList<Pair<Integer, Integer>>();
+    for (int i = 0; i < SIZE; ++i)
+      for (int j = 0; j < SIZE; ++j) {
+        switch (mDisposition[i][j]) {
+          case 1000:  // RED
+            reds.add(new Pair<Integer, Integer>(i, j));
+            break;
+          case 2000:  // BLUE
+            blues.add(new Pair<Integer, Integer>(i, j));
+            break;
+          default:
+            break;
+        }
+      }
+    ArrayList<Pair<Integer, ArrayList<Pair<Integer, Integer>>>> all =
+        new ArrayList<Pair<Integer, ArrayList<Pair<Integer, Integer>>>>();
+    all.add(new Pair<Integer, ArrayList<Pair<Integer, Integer>>>(Color.CYAN, blues));
+    all.add(new Pair<Integer, ArrayList<Pair<Integer, Integer>>>(Color.YELLOW, reds));
+    //all.add(new Pair<Integer, ArrayList<Pair<Integer, Integer>>>(Color.CYAN, blues));
+    return all;
   }
 
   public boolean addDot(Dot.Colour color, int atX, int atY) {
