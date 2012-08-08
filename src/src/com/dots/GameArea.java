@@ -119,7 +119,7 @@ public class GameArea extends View {
       mPaint.setColor(savedColor);
     }
   }
-  
+
   private void drawDotBackgroundsForColor(int color, ArrayList<Pair<Integer, Integer>> dots, Canvas canvas) {
     int savedColor = mPaint.getColor();
     try {
@@ -134,7 +134,7 @@ public class GameArea extends View {
       mPaint.setColor(savedColor);
     }
   }
-  
+
   private void drawDotBackgrounds(Canvas canvas) {
     //
     ArrayList<Pair<Integer, ArrayList<Pair<Integer, Integer>>>> backgrounds =
@@ -170,7 +170,7 @@ public class GameArea extends View {
     switch (event.getAction()) {
       case MotionEvent.ACTION_DOWN:
         if (!mGameState.isGamesApiConnected()) {
-          Toast.makeText(getContext(), "Connecting to Games API", Toast.LENGTH_LONG).show();
+          throw new IllegalStateException(GameActivity.class + " must have checked for connectivity.");
         } else {
           xx = event.getX();
           yy = event.getY();

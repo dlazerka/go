@@ -19,9 +19,11 @@ import com.google.android.gms.games.data.match.PlayerResult;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
 public class GameActivity extends GamesApiActivity {
+  private static final String CONNECTING_MESSAGE = "Connecting to Games API";
   private GameState mGameState;
   private TurnBasedMatchImpl mMatch;
   private GameArea mGameArea;
+  private Toast currentToast;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +51,11 @@ public class GameActivity extends GamesApiActivity {
     mGameArea.setOnTouchListener(new OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
+        if (!getGamesClient().isConnected()) {
+          showToastConnecting();
+          return true;
+        }
+
         TextView scoreBlueView = (TextView) findViewById(R.id.scoreBlue);
         TextView scoreRedView = (TextView) findViewById(R.id.scoreRed);
         Integer scoreBlue = mGameState.getScore(Dot.Colour.CL_BLUE);
@@ -77,8 +84,6 @@ public class GameActivity extends GamesApiActivity {
     mGameArea.setGameState(mGameState);
 
     surrenderButton.setOnClickListener(new View.OnClickListener() {
-      private Toast currentToast;
-
       @Override
       public void onClick(View v) {
         if (mMatch == null) {
@@ -95,14 +100,22 @@ public class GameActivity extends GamesApiActivity {
 
             gamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
           } catch (NotYetConnectedException e) {
-            if (currentToast == null) {
-              currentToast = Toast.makeText(GameActivity.this, e.getMessage(), Toast.LENGTH_SHORT);
-            }
-            currentToast.show();
+            showToastConnecting();
           }
         }
       }
+
     });
+  }
+
+  void showToastConnecting() {
+    if (currentToast == null) {
+      currentToast = Toast.makeText(GameActivity.this, CONNECTING_MESSAGE, Toast.LENGTH_SHORT);
+    }
+    // To not schedule many toasts.
+    if (!currentToast.getView().isShown()) {
+      currentToast.show();
+    }
   }
 
   @Override
