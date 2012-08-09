@@ -31,6 +31,12 @@ public class GameState implements TurnBasedMatchListener {
   private ArrayList<Dot> mBlueDots;
   private Dot.Colour mCurrentTurn;
   private Dot[][] mGrid;
+	// Holds dot/cell state. mDisposition[i][j] indicates which team/color cell (i, j)
+	// "belongs" to:
+	// 1. If the cell is not surrounded/filled, the value is -1.
+	// 2. If the cell is not surrounded but filled, the value is the color of the dot
+	//		that occupies the cell.
+	// 3. Otherwise, the value is the color of the outermost team that surrouneds it.
   private int[][] mDisposition;
   private TurnBasedMatchImpl mMatch;
   private String mMyPlayerId;
@@ -86,7 +92,11 @@ public class GameState implements TurnBasedMatchListener {
     return mDisposition[x + Dot.dx[dir]][y] == cl && mDisposition[x][y + Dot.dy[dir]] == cl;
   }
 
-  private void search(int startX, int startY, int cl, int ns, int[][] mm) {
+	// (startX, startY) - starting point.
+	// cl - current color.
+	// ns - iteration number (and, actually, label color).
+	// mm - label field.
+  private void floodFill(int startX, int startY, int cl, int ns, int[][] mm) {
     if (mm[startX][startY] != -1)
       return;
     Queue<Pair<Integer, Integer>> q = new LinkedList<Pair<Integer, Integer>>();
@@ -110,6 +120,25 @@ public class GameState implements TurnBasedMatchListener {
     }
   }
 
+	private void floodFill2(int startX, int startY, int[][] mm) {
+		if (mm[startX][startY] != -1) return;
+    Queue<Pair<Integer, Integer>> q = new LinkedList<Pair<Integer, Integer>>();
+    q.add(new Pair<Integer, Integer>(startX, startY));
+    mm[startX][startY] = -3;
+    while (!q.isEmpty()) {
+      Pair<Integer, Integer> p = q.poll();
+      int x = p.first.intValue();
+      int y = p.second.intValue();
+      for (int i = 0; i < Dot.NUM_DIRECTIONS; ++i) {
+        int nx = x + Dot.dx[i], ny = y + Dot.dy[i];
+        if (0 <= nx && nx < SIZE && 0 <= ny && ny < SIZE && mm[nx][ny] == -1) {
+          mm[nx][ny] = -3;
+          q.add(new Pair<Integer, Integer>(nx, ny));
+        }
+      }
+    }
+	}
+
   static int cl2int(Dot.Colour c) {
     switch (c) {
       case CL_RED:
@@ -127,6 +156,8 @@ public class GameState implements TurnBasedMatchListener {
     int[][] mm = new int[SIZE][SIZE];
     for (int i = 0; i < SIZE; ++i) {
       for (int j = 0; j < SIZE; ++j) {
+				// If the dot is currently active, mark it with the current color.
+				// So, we can't pass through it while flood-filling.
         if (mDisposition[i][j] == cl) {
           mm[i][j] = cl;
         } else {
@@ -137,34 +168,42 @@ public class GameState implements TurnBasedMatchListener {
 
     for (int i = 0, ns = 0; i < SIZE; ++i) {
       // start at (i, 0)
-      search(i, 0, cl, ns++, mm);
-      search(i, SIZE - 1, cl, ns++, mm);
-      search(0, i, cl, ns++, mm);
-      search(SIZE - 1, i, cl, ns++, mm);
+      floodFill(i, 0, cl, ns++, mm);
+      // start at (i, SIZE - 1)
+      floodFill(i, SIZE - 1, cl, ns++, mm);
+      // start at (0, i)
+      floodFill(0, i, cl, ns++, mm);
+      // start at (SIZE - 1, i)
+      floodFill(SIZE - 1, i, cl, ns++, mm);
     }
 
     int numSurrounded = 0;
+    int changedColor = cl + 1;
     for (int i = 0; i < SIZE; ++i) {
       for (int j = 0; j < SIZE; ++j) {
-        if (mm[i][j] == -1) {
+				// If we didn't reach this cell.
+        if (mm[i][j] < 0) {
+					// It is an opponent's dot.
           if (mDisposition[i][j] != cl && mDisposition[i][j] != -1) {
             ++numSurrounded;
+						floodFill2(i, j, mm);
           }
-          mDisposition[i][j] = cl;
+					// Mark the cell.
+          mDisposition[i][j] = changedColor;
         }
       }
     }
     if (numSurrounded > 0) {
-      // draw the border.
-      // TODO(rustema): add a better border computation.
+      // Find the border.
+      // TODO(rustema): handle redundant edges.
       for (int i = 0; i < SIZE; ++i)
         for (int j = 0; j < SIZE; ++j) {
-          //
-          if (mGrid[i][j] != null && cl2int(mGrid[i][j].color) == cl) {
+          // If it's our dot
+          if (mGrid[i][j] != null && cl2int(mGrid[i][j].color) == cl && mDisposition[i][j] == cl) {
             for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
               int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
-              if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] != cl
-                  && mm[ni][nj] >= 0) {
+							// If the dot (i, j) is neighbouring a cell which we had reached while flood-filling.
+              if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] == -3) {
                 mm[i][j] = -2;
               }
             }
@@ -189,6 +228,14 @@ public class GameState implements TurnBasedMatchListener {
               }
             }
           }
+    }
+    for (int i = 0; i < SIZE; ++i) {
+      for (int j = 0; j < SIZE; ++j) {
+        if (mDisposition[i][j] == changedColor) {
+          // Mark it ours.
+          mDisposition[i][j] = cl;
+        }
+      }
     }
   }
   
