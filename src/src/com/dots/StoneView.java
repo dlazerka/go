@@ -39,7 +39,7 @@ abstract class StoneView extends View {
   @Override
   protected void onDraw(Canvas canvas) {
     if (mRect.right == 0) {
-      throw new IllegalStateException("You must set size");
+      throw new IllegalStateException("Size is unset");
     }
     canvas.drawOval(mRect, mFillPaint);
   }

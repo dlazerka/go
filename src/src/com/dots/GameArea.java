@@ -12,99 +12,89 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.GridView;
 import android.widget.Toast;
 
 import com.dots.Dot.Colour;
 
-public class GameArea extends GridView {
-  Paint mPaint;
+public class GameArea extends ViewGroup {
   GameState mGameState;
-  final static int PADDING = 0;
+  final static int PADDING = 3;
   final static int CELL_SIZE = 44;
   final static int GRID_SIZE = 10;
 
   float[] mGrid;
   LayoutInflater mLi = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
+  final Paint mPaintGrid = new Paint();
+  final Paint mPaint;
+
+  /** Layout area. Mutable. */
+  final Rect mRect = new Rect(0, 0, 0, 0);
+
+  /** Row-major. */
+  final StoneView[][] stones = new StoneView[GRID_SIZE][GRID_SIZE];
+
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
+
+    mPaintGrid.setColor(Color.BLACK);
+    mPaintGrid.setStrokeWidth(2f);
+    mPaintGrid.setStrokeCap(Paint.Cap.ROUND);
+
     mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     mPaint.setColor(Color.BLACK);
     mPaint.setStrokeCap(Paint.Cap.SQUARE);
-    setAdapter(new StonesAdapter());
-    setNumColumns(GRID_SIZE);
     // Padding for drawing children (stones);
     setPadding(PADDING, PADDING, PADDING, PADDING);
-    // 4 -- 15
-    // 8 -- 6
-    // 10 - 5? 4?
-    int spacing = 480 / (GRID_SIZE - 1) - CELL_SIZE - 4;
-    setHorizontalSpacing(spacing);
-    setVerticalSpacing(spacing);
+
+    stones[0][0] = new WhiteStoneView(getContext(), CELL_SIZE);
+    for (int row = 0; row < GRID_SIZE; row++) {
+      for (int col = 0; col < GRID_SIZE; col++) {
+        if (stones[row][col] != null)
+          addView(stones[row][col]);
+      }
+    }
   }
 
   void setGameState(GameState gameState) {
     mGameState = gameState;
   }
 
-  private float[] computeGridLines(Rect rect) {
-//    int size = Math.min(rect.width(), rect.height());
-    int l = rect.left + CELL_SIZE/2 + PADDING;
-    int r = rect.right - CELL_SIZE/2 - PADDING;
-    int t = l;
-    int b = r;
-
-    // Each line is specified with 4 coordinates.
-    float[] points = new float[GRID_SIZE * 8];
-
-    float offset;
-    for (int i = 0, at = 0; i < GRID_SIZE; ++i) {
-      // l + (r-l) * i/N
-      // But N-1 because we want i/N to be equal to 1 at the last line.
-      offset = l + (r-l) * i / ((float)GRID_SIZE - 1);
-      // vertical
-      points[at++] = f(offset);
-      points[at++] = f(t);
-      points[at++] = f(offset);
-      points[at++] = f(b);
-      // horizontal
-      points[at++] = f(l);
-      points[at++] = f(offset);
-      points[at++] = f(r);
-      points[at++] = f(offset);
-    }
-    return points;
+  /** @return Position on the canvas for given row (zero-based) */
+  private int getX(int row) {
+    int l = mRect.left + CELL_SIZE/2 + PADDING;
+    int r = mRect.right - CELL_SIZE/2 - PADDING;
+    return getCoord(row, l, r);
   }
 
-  private static float f(float t) {
-    return t;
-  }
-  private static float f(int t) {
-    return t + 0.5f;
+  /** @return Position on canvas for given row (zero-based) */
+  private int getY(int col) {
+    int l = mRect.top + CELL_SIZE/2 + PADDING;
+    int r = mRect.bottom - CELL_SIZE/2 - PADDING;
+    return getCoord(col, l, r);
   }
 
-  private void drawGrid(Canvas canvas) {
-    Rect rect = canvas.getClipBounds();
-//    if (mGrid == null) {
-      mGrid = computeGridLines(rect);
-//    }
-
-    mPaint.setColor(Color.BLACK);
-    mPaint.setStrokeWidth(1.5f);
-    canvas.drawLines(mGrid, mPaint);
+  private int getCoord(int i, int min, int max) {
+    // l + (r-l) * i/N
+    // But N-1 because we want i/N to be equal to 1 at the last line.
+    return min + (max-min) * i / (GRID_SIZE - 1);
   }
 
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
-//    drawDotBackgrounds(canvas);
-    drawGrid(canvas);
-//    drawDots(canvas);
+    // Grid
+    canvas.drawLines(mGrid, mPaintGrid);
+
+    // Stones
+    for (int row = 0; row < GRID_SIZE; row++) {
+      for (int col = 0; col < GRID_SIZE; col++) {
+        if (stones[row][col] != null)
+          stones[row][col].draw(canvas);
+      }
+    }
   }
 
   @Override
@@ -119,14 +109,10 @@ public class GameArea extends GridView {
   }
 
   private void drawDotsForColor(Dot.Colour color, Canvas canvas) {
-
-
     int savedColor = mPaint.getColor();
     try {
       // Color
       mPaint.setColor(Color.BLACK);
-//      RadialGradient grad = new RadialGradient(5, 5, 10, Color.BLACK, Color.WHITE, null);
-//      mPaint.setShader(grad);
       for (Dot d : mGameState.getDots(color)) {
         float x0 = cell2Coord(d.x);
         float y0 = cell2Coord(d.y);
@@ -145,32 +131,6 @@ public class GameArea extends GridView {
     } finally {
       mPaint.setStrokeWidth(1);
       mPaint.setColor(savedColor);
-    }
-  }
-
-  private void drawDotBackgroundsForColor(int color, ArrayList<Pair<Integer, Integer>> dots, Canvas canvas) {
-    int savedColor = mPaint.getColor();
-    try {
-      // Color
-      mPaint.setColor(color);
-      for (Pair<Integer, Integer> d : dots) {
-        float x0 = cell2Coord(d.first);
-        float y0 = cell2Coord(d.second);
-        canvas.drawCircle(x0, y0, 15, mPaint);
-      }
-    } finally {
-      mPaint.setColor(savedColor);
-    }
-  }
-
-  private void drawDotBackgrounds(Canvas canvas) {
-    //
-    ArrayList<Pair<Integer, ArrayList<Pair<Integer, Integer>>>> backgrounds =
-        mGameState.getDotBackgrounds();
-    for (Pair<Integer, ArrayList<Pair<Integer, Integer>>> bg : backgrounds) {
-      final int color = bg.first.intValue();
-      final ArrayList<Pair<Integer, Integer>> dots = bg.second;
-      drawDotBackgroundsForColor(color, dots, canvas);
     }
   }
 
@@ -221,40 +181,34 @@ public class GameArea extends GridView {
     return super.onTouchEvent(event);
   }
 
+  @Override
+  protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    mRect.left = l;
+    mRect.top = t;
+    mRect.right = r;
+    mRect.bottom = b;
 
-  private class StonesAdapter extends BaseAdapter {
+    if (mGrid == null) {
+      mGrid = new float[GRID_SIZE * 8];
 
-    @Override
-    public int getCount() {
-      return GRID_SIZE * GRID_SIZE;
-//      return 0;
-    }
-
-    @Override
-    public boolean hasStableIds() {
-      return true;
-    }
-
-    @Override
-    public Object getItem(int position) {
-      return null;
-    }
-
-    @Override
-    public long getItemId(int position) {
-      return position;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      StoneView view;
-      if (position % 2 == 0) {
-        view = new WhiteStoneView(getContext(), CELL_SIZE);
-      } else {
-        view = new BlackStoneView(getContext(), CELL_SIZE);
+      float minX = getX(0);
+      float maxX = getX(GRID_SIZE - 1);
+      float minY = getY(0);
+      float maxY = getY(GRID_SIZE - 1);
+      for (int i = 0, at = 0; i < GRID_SIZE; ++i) {
+        float x = getX(i);
+        float y = getY(i);
+        // vertical line
+        mGrid[at++] = x;
+        mGrid[at++] = minY;
+        mGrid[at++] = x;
+        mGrid[at++] = maxY;
+        // horizontal line
+        mGrid[at++] = minX;
+        mGrid[at++] = y;
+        mGrid[at++] = maxX;
+        mGrid[at++] = y;
       }
-      return view;
     }
-
   }
 }
