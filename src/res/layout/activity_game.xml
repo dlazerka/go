@@ -1,47 +1,53 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:a="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/game_area"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    a:id="@+id/game_area"
+    a:layout_width="match_parent"
+    a:layout_height="match_parent"
+    a:orientation="vertical" >
 
     <!-- layout_height will be rewritten -->
 
     <com.dots.GameArea
-        android:id="@+id/desk"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/teak"
-        android:padding="10dp" >
+        a:id="@+id/desk"
+        a:layout_width="match_parent"
+        a:layout_height="match_parent"
+        a:useDefaultMargins="true"
+        a:alignmentMode="alignBounds"
+        a:background="@drawable/teak"
+        >
     </com.dots.GameArea>
 
     <TextView
-        android:id="@+id/scoreBlue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/desk"
-        android:paddingLeft="@dimen/padding_large"
-        android:text="@string/defaultScore"
-        android:textColor="#00f"
-        android:textSize="50sp" />
+        a:id="@+id/scoreBlue"
+        a:visibility="gone"
+        a:layout_width="wrap_content"
+        a:layout_height="wrap_content"
+        a:layout_alignParentLeft="true"
+        a:layout_below="@+id/desk"
+        a:paddingLeft="@dimen/padding_large"
+        a:text="@string/defaultScore"
+        a:textColor="#00f"
+        a:textSize="50sp" />
 
     <TextView
-        android:id="@+id/scoreRed"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/desk"
-        android:paddingRight="@dimen/padding_large"
-        android:text="@string/defaultScore"
-        android:textColor="#f00"
-        android:textSize="50sp" />
+        a:id="@+id/scoreRed"
+        a:visibility="gone"
+        a:layout_width="wrap_content"
+        a:layout_height="wrap_content"
+        a:layout_alignParentRight="true"
+        a:layout_below="@+id/desk"
+        a:paddingRight="@dimen/padding_large"
+        a:text="@string/defaultScore"
+        a:textColor="#f00"
+        a:textSize="50sp" />
 
     <Button
-        android:id="@+id/surrenderButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="@string/surrender" />
-
+        a:id="@+id/surrenderButton"
+        a:visibility="gone"
+        a:layout_width="match_parent"
+        a:layout_height="wrap_content"
+        a:layout_alignParentBottom="true"
+        a:text="@string/surrender" />
+ -->
 </RelativeLayout>
