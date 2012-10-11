@@ -2,47 +2,48 @@ package com.dots;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.Shader;
-import android.util.AttributeSet;
 import android.view.View;
-import android.widget.GridLayout.LayoutParams;
 
-abstract class StoneView extends View {
-  private final Paint mFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-  RectF mRect = new RectF();
+class StoneView extends View {
+  final Stone stone;
+  final Paint mFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+  int mSize;
 
-  public StoneView(Context context, int size) {
+  StoneView(Stone stone, Context context) {
     super(context);
-    setSize(size);
+    this.stone = stone;
   }
 
-  public void setSize(int s) {
-    // The image itself.
-    mFillPaint.setShader(getShader(s));
+  @Override
+  protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+    super.onLayout(changed, left, top, right, bottom);
 
-    // Where the image will be drawn.
-    mRect.right = s;
-    mRect.bottom = s;
-
-    // The space parent should allocate for the image.
-    LayoutParams params = new LayoutParams();
-    params.width = s;
-    params.height = s;
-    setLayoutParams(params);
+    this.mSize = right - left;
+    Shader shader = stone.isWhite() ? getWhite() : getBlack();
+    mFillPaint.setShader(shader);
   }
 
   @Override
   protected void onDraw(Canvas canvas) {
-    if (mRect.right == 0) {
-      throw new IllegalStateException("Size is unset");
-    }
-    canvas.drawOval(mRect, mFillPaint);
+    canvas.drawCircle(mSize / 2, mSize / 2, mSize / 2, mFillPaint);
   }
 
-  abstract Shader getShader(float size);
+  RadialGradient getBlack() {
+    return new RadialGradient(
+        mSize * .3f, mSize * .3f, mSize * .8f,
+        new int[] { 0xFF777777, 0xFF222222, 0xFF000000 },
+        new float[] { 0, .3f, 1.0f },
+        Shader.TileMode.CLAMP);
+  }
+
+  RadialGradient getWhite() {
+    return new RadialGradient(
+        mSize * .47f, mSize * .47f, mSize * .48f,
+        new int[] { 0xFFFFFFFF, 0xFFDDDDDD, 0xFF777777 },
+        new float[] { .7f, .9f, 1.0f },
+        Shader.TileMode.CLAMP);
+  }
 }

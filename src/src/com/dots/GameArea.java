@@ -1,6 +1,7 @@
 package com.dots;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,7 +10,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
@@ -20,11 +20,10 @@ import com.dots.Dot.Colour;
 public class GameArea extends ViewGroup {
   GameState mGameState;
   final static int PADDING = 3;
-  final static int CELL_SIZE = 44;
+  final static int STONE_SIZE = 44;
   final static int GRID_SIZE = 10;
 
   float[] mGrid;
-  LayoutInflater mLi = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
   final Paint mPaintGrid = new Paint();
   final Paint mPaint;
@@ -32,13 +31,15 @@ public class GameArea extends ViewGroup {
   /** Layout area. Mutable. */
   final Rect mRect = new Rect(0, 0, 0, 0);
 
+  final Collection<Stone> stones = new ArrayList<Stone>(GRID_SIZE * GRID_SIZE);
+
   /** Row-major. */
-  final StoneView[][] stones = new StoneView[GRID_SIZE][GRID_SIZE];
+  final StoneView[][] stoneViews = new StoneView[GRID_SIZE][GRID_SIZE];
 
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
 
-    mPaintGrid.setColor(Color.BLACK);
+    mPaintGrid.setColor(Color.DKGRAY);
     mPaintGrid.setStrokeWidth(2f);
     mPaintGrid.setStrokeCap(Paint.Cap.ROUND);
 
@@ -48,12 +49,13 @@ public class GameArea extends ViewGroup {
     // Padding for drawing children (stones);
     setPadding(PADDING, PADDING, PADDING, PADDING);
 
-    stones[0][0] = new WhiteStoneView(getContext(), CELL_SIZE);
-    for (int row = 0; row < GRID_SIZE; row++) {
-      for (int col = 0; col < GRID_SIZE; col++) {
-        if (stones[row][col] != null)
-          addView(stones[row][col]);
-      }
+    stones.add(Stone.white(1, 2));
+    stones.add(Stone.white(4, 2));
+    stones.add(Stone.black(3, 1));
+    for (Stone stone : stones) {
+      StoneView view = new StoneView(stone, getContext());
+      stoneViews[stone.row][stone.col] = view;
+      addView(view);
     }
   }
 
@@ -63,22 +65,22 @@ public class GameArea extends ViewGroup {
 
   /** @return Position on the canvas for given row (zero-based) */
   private int getX(int row) {
-    int l = mRect.left + CELL_SIZE/2 + PADDING;
-    int r = mRect.right - CELL_SIZE/2 - PADDING;
+    int l = mRect.left + STONE_SIZE / 2 + PADDING;
+    int r = mRect.right - STONE_SIZE / 2 - PADDING;
     return getCoord(row, l, r);
   }
 
   /** @return Position on canvas for given row (zero-based) */
   private int getY(int col) {
-    int l = mRect.top + CELL_SIZE/2 + PADDING;
-    int r = mRect.bottom - CELL_SIZE/2 - PADDING;
+    int l = mRect.top + STONE_SIZE / 2 + PADDING;
+    int r = mRect.bottom - STONE_SIZE / 2 - PADDING;
     return getCoord(col, l, r);
   }
 
   private int getCoord(int i, int min, int max) {
     // l + (r-l) * i/N
     // But N-1 because we want i/N to be equal to 1 at the last line.
-    return min + (max-min) * i / (GRID_SIZE - 1);
+    return min + (max - min) * i / (GRID_SIZE - 1);
   }
 
   @Override
@@ -87,14 +89,6 @@ public class GameArea extends ViewGroup {
 
     // Grid
     canvas.drawLines(mGrid, mPaintGrid);
-
-    // Stones
-    for (int row = 0; row < GRID_SIZE; row++) {
-      for (int col = 0; col < GRID_SIZE; col++) {
-        if (stones[row][col] != null)
-          stones[row][col].draw(canvas);
-      }
-    }
   }
 
   @Override
@@ -116,7 +110,6 @@ public class GameArea extends ViewGroup {
       for (Dot d : mGameState.getDots(color)) {
         float x0 = cell2Coord(d.x);
         float y0 = cell2Coord(d.y);
-
 
         canvas.drawCircle(x0, y0, 10, mPaint);
         for (int i = 0; i < (Dot.NUM_DIRECTIONS >> 1); ++i) {
@@ -145,25 +138,27 @@ public class GameArea extends ViewGroup {
   }
 
   private int roundCoordinate(float t) {
-    return (int) ((t - PADDING) / CELL_SIZE + 0.5);
+    return (int) ((t - PADDING) / STONE_SIZE + 0.5);
   }
 
   private int cell2Coord(int t) {
-    return PADDING + t * CELL_SIZE;
+    return PADDING + t * STONE_SIZE;
   }
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
     float xx, yy;
+    postInvalidate();
     switch (event.getAction()) {
       case MotionEvent.ACTION_DOWN:
         if (!mGameState.isGamesApiConnected()) {
-          throw new IllegalStateException(GameActivity.class + " must have checked for connectivity.");
+          throw new IllegalStateException(GameActivity.class
+              + " must have checked for connectivity.");
         } else {
           xx = event.getX();
           yy = event.getY();
-          if (PADDING <= xx && xx <= PADDING + CELL_SIZE * GRID_SIZE &&
-              PADDING <= yy && yy <= PADDING + CELL_SIZE * GRID_SIZE) {
+          if (PADDING <= xx && xx <= PADDING + STONE_SIZE * GRID_SIZE &&
+              PADDING <= yy && yy <= PADDING + STONE_SIZE * GRID_SIZE) {
             Log.d("action up", "at " + xx + ", " + yy);
             Colour currentTurn = mGameState.getCurrentTurn();
             if (currentTurn != null) {
@@ -177,7 +172,6 @@ public class GameArea extends ViewGroup {
           }
         }
     }
-    postInvalidate();
     return super.onTouchEvent(event);
   }
 
@@ -209,6 +203,14 @@ public class GameArea extends ViewGroup {
         mGrid[at++] = maxX;
         mGrid[at++] = y;
       }
+    }
+
+    for (Stone stone : stones) {
+      int x = getX(stone.col);
+      int y = getY(stone.row);
+      StoneView stoneView = stoneViews[stone.row][stone.col];
+      stoneView.layout(x - STONE_SIZE / 2, y - STONE_SIZE / 2, x + STONE_SIZE / 2, y + STONE_SIZE / 2);
+//      stoneView.layout(PADDING, PADDING, 120 - PADDING, 120 - PADDING);
     }
   }
 }
