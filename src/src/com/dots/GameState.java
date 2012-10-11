@@ -31,12 +31,15 @@ public class GameState implements TurnBasedMatchListener {
   private ArrayList<Dot> mBlueDots;
   private Dot.Colour mCurrentTurn;
   private Dot[][] mGrid;
-	// Holds dot/cell state. mDisposition[i][j] indicates which team/color cell (i, j)
-	// "belongs" to:
-	// 1. If the cell is not surrounded/filled, the value is -1.
-	// 2. If the cell is not surrounded but filled, the value is the color of the dot
-	//		that occupies the cell.
-	// 3. Otherwise, the value is the color of the outermost team that surrouneds it.
+  // Holds dot/cell state. mDisposition[i][j] indicates which team/color cell
+  // (i, j)
+  // "belongs" to:
+  // 1. If the cell is not surrounded/filled, the value is -1.
+  // 2. If the cell is not surrounded but filled, the value is the color of the
+  // dot
+  // that occupies the cell.
+  // 3. Otherwise, the value is the color of the outermost team that surrouneds
+  // it.
   private int[][] mDisposition;
   private TurnBasedMatchImpl mMatch;
   private String mMyPlayerId;
@@ -92,10 +95,10 @@ public class GameState implements TurnBasedMatchListener {
     return mDisposition[x + Dot.dx[dir]][y] == cl && mDisposition[x][y + Dot.dy[dir]] == cl;
   }
 
-	// (startX, startY) - starting point.
-	// cl - current color.
-	// ns - iteration number (and, actually, label color).
-	// mm - label field.
+  // (startX, startY) - starting point.
+  // cl - current color.
+  // ns - iteration number (and, actually, label color).
+  // mm - label field.
   private void floodFill(int startX, int startY, int cl, int ns, int[][] mm) {
     if (mm[startX][startY] != -1)
       return;
@@ -120,8 +123,9 @@ public class GameState implements TurnBasedMatchListener {
     }
   }
 
-	private void floodFill2(int startX, int startY, int[][] mm) {
-		if (mm[startX][startY] != -1) return;
+  private void floodFill2(int startX, int startY, int[][] mm) {
+    if (mm[startX][startY] != -1)
+      return;
     Queue<Pair<Integer, Integer>> q = new LinkedList<Pair<Integer, Integer>>();
     q.add(new Pair<Integer, Integer>(startX, startY));
     mm[startX][startY] = -3;
@@ -137,7 +141,7 @@ public class GameState implements TurnBasedMatchListener {
         }
       }
     }
-	}
+  }
 
   static int cl2int(Dot.Colour c) {
     switch (c) {
@@ -156,8 +160,8 @@ public class GameState implements TurnBasedMatchListener {
     int[][] mm = new int[SIZE][SIZE];
     for (int i = 0; i < SIZE; ++i) {
       for (int j = 0; j < SIZE; ++j) {
-				// If the dot is currently active, mark it with the current color.
-				// So, we can't pass through it while flood-filling.
+        // If the dot is currently active, mark it with the current color.
+        // So, we can't pass through it while flood-filling.
         if (mDisposition[i][j] == cl) {
           mm[i][j] = cl;
         } else {
@@ -181,14 +185,14 @@ public class GameState implements TurnBasedMatchListener {
     int changedColor = cl + 1;
     for (int i = 0; i < SIZE; ++i) {
       for (int j = 0; j < SIZE; ++j) {
-				// If we didn't reach this cell.
+        // If we didn't reach this cell.
         if (mm[i][j] < 0) {
-					// It is an opponent's dot.
+          // It is an opponent's dot.
           if (mDisposition[i][j] != cl && mDisposition[i][j] != -1) {
             ++numSurrounded;
-						floodFill2(i, j, mm);
+            floodFill2(i, j, mm);
           }
-					// Mark the cell.
+          // Mark the cell.
           mDisposition[i][j] = changedColor;
         }
       }
@@ -202,7 +206,8 @@ public class GameState implements TurnBasedMatchListener {
           if (mGrid[i][j] != null && cl2int(mGrid[i][j].color) == cl && mDisposition[i][j] == cl) {
             for (int k = 0; k < Dot.NUM_DIRECTIONS; ++k) {
               int ni = i + Dot.dx[k], nj = j + Dot.dy[k];
-							// If the dot (i, j) is neighbouring a cell which we had reached while flood-filling.
+              // If the dot (i, j) is neighbouring a cell which we had reached
+              // while flood-filling.
               if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] == -3) {
                 mm[i][j] = -2;
               }
@@ -217,9 +222,12 @@ public class GameState implements TurnBasedMatchListener {
               if (0 <= ni && ni < SIZE && 0 <= nj && nj < SIZE && mm[ni][nj] == -2) {
                 // i -> ni
                 if (Dot.isDirectionDiagonal(k)) {
-                  // If the diagonal is redundant and any of its corresponding corners
-                  // is already in the border, skip drawing an edge along the diagonal.
-                  // Diagonal: (i, j) - (ni, nj), corner vertices: (i, nj) && (ni, j).
+                  // If the diagonal is redundant and any of its corresponding
+                  // corners
+                  // is already in the border, skip drawing an edge along the
+                  // diagonal.
+                  // Diagonal: (i, j) - (ni, nj), corner vertices: (i, nj) &&
+                  // (ni, j).
                   if (mm[i][nj] == -2 || mm[ni][j] == -2) {
                     continue;
                   }
@@ -238,18 +246,18 @@ public class GameState implements TurnBasedMatchListener {
       }
     }
   }
-  
-  public ArrayList<Pair<Integer , ArrayList<Pair<Integer, Integer>>>> getDotBackgrounds() {
+
+  public ArrayList<Pair<Integer, ArrayList<Pair<Integer, Integer>>>> getDotBackgrounds() {
     ArrayList<Pair<Integer, Integer>> reds = new ArrayList<Pair<Integer, Integer>>();
     ArrayList<Pair<Integer, Integer>> blues = new ArrayList<Pair<Integer, Integer>>();
     ArrayList<Pair<Integer, Integer>> none = new ArrayList<Pair<Integer, Integer>>();
     for (int i = 0; i < SIZE; ++i)
       for (int j = 0; j < SIZE; ++j) {
         switch (mDisposition[i][j]) {
-          case 1000:  // RED
+          case 1000: // RED
             reds.add(new Pair<Integer, Integer>(i, j));
             break;
-          case 2000:  // BLUE
+          case 2000: // BLUE
             blues.add(new Pair<Integer, Integer>(i, j));
             break;
           default:
@@ -260,7 +268,8 @@ public class GameState implements TurnBasedMatchListener {
         new ArrayList<Pair<Integer, ArrayList<Pair<Integer, Integer>>>>();
     all.add(new Pair<Integer, ArrayList<Pair<Integer, Integer>>>(Color.CYAN, blues));
     all.add(new Pair<Integer, ArrayList<Pair<Integer, Integer>>>(Color.YELLOW, reds));
-    //all.add(new Pair<Integer, ArrayList<Pair<Integer, Integer>>>(Color.CYAN, blues));
+    // all.add(new Pair<Integer, ArrayList<Pair<Integer, Integer>>>(Color.CYAN,
+    // blues));
     return all;
   }
 

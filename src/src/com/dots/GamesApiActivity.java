@@ -36,7 +36,7 @@ public abstract class GamesApiActivity extends Activity implements OnConnectionF
   @Override
   protected void onStart() {
     super.onStart();
-    mGamesClient.connect();
+//    mGamesClient.connect();
   }
 
   @Override
