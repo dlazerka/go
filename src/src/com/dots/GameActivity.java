@@ -1,112 +1,121 @@
 package com.dots;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
-import android.content.Intent;
+import roboguice.inject.ContentView;
+import roboguice.inject.InjectView;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
+import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.games.GamesClient;
-import com.google.android.gms.games.data.match.PlayerResult;
-import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
+import com.dots.model.Game;
+import com.google.inject.Inject;
 
+@ContentView(R.layout.activity_game)
 public class GameActivity extends GamesApiActivity {
   private static final String CONNECTING_MESSAGE = "Connecting to Games API";
-  private GameState mGameState;
-  private TurnBasedMatchImpl mMatch;
-  private GameArea mGameArea;
+  // private GameState mGameState;
+  // private TurnBasedMatchImpl mMatch;
   private Toast currentToast;
+
+  @InjectView(R.id.desk)
+  private GameArea mGameArea;
+  @InjectView(R.id.passButton)
+  Button mPassButton;
+  @Inject
+  Game mGame;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    Intent intent = getIntent();
-    if (intent != null && intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {
-      mMatch = intent.getParcelableExtra(GamesClient.EXTRA_TURN_BASED_MATCH);
-    } else {
-      mGameState = new GameState(this);
-    }
-
-    fillView();
-
-    if (mMatch != null) {
-      try {
-        mGameState.deserialize(mMatch.getData());
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      }
-    }
-
-    mGameArea.setOnTouchListener(new OnTouchListener() {
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
-//        if (!getGamesClient().isConnected()) {
-//          showToastConnecting();
-//          return true;
-//        }
-
-        TextView scoreBlueView = (TextView) findViewById(R.id.scoreBlue);
-        TextView scoreRedView = (TextView) findViewById(R.id.scoreRed);
-        Integer scoreBlue = mGameState.getScore(Dot.Colour.CL_BLUE);
-        Integer scoreRed = mGameState.getScore(Dot.Colour.CL_RED);
-        scoreBlueView.setText(scoreBlue.toString());
-        scoreRedView.setText(scoreRed.toString());
-        return false;
-      }
-    });
-  }
-
-  private String getOpponentPlayerId() throws NotYetConnectedException {
-    String currentPlayerId = getConnectedGamesClient().getCurrentPlayerId();
-    ArrayList<String> playerIds = mMatch.getPlayerIds();
-    String result = playerIds.get(0);
-    if (result.equals(currentPlayerId)) {
-      result = playerIds.get(1);
-    }
-    return result;
-  }
-
-  private void fillView() {
-    setContentView(R.layout.activity_game);
-    Button passButton = (Button) findViewById(R.id.passButton);
-    mGameArea = (GameArea) findViewById(R.id.desk);
-    mGameArea.setGameState(mGameState);
-
     Typeface font = Typeface.createFromAsset(getAssets(), "fonts/Shojumaru-Regular.ttf");
-    passButton.setTypeface(font);
-
-    passButton.setOnClickListener(new View.OnClickListener() {
+    mPassButton.setTypeface(font);
+    mPassButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        try {
-          String opponentPlayerId;
-          opponentPlayerId = getOpponentPlayerId();
-          GamesClient gamesClient = getConnectedGamesClient();
-          ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
-          results.add(new PlayerResult(gamesClient.getCurrentPlayerId(), 1,
-              PlayerResult.PLACING_UNINITIALIZED));
-          results.add(new PlayerResult(opponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
-
-          gamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
-        } catch (NotYetConnectedException e) {
-          showToastConnecting();
-        }
+        mGame.passTurn();
+        Toast.makeText(GameActivity.this, "Passed", Toast.LENGTH_SHORT).show();
       }
-
     });
+
+    // Intent intent = getIntent();
+    // if (intent != null &&
+    // intent.hasExtra(GamesClient.EXTRA_TURN_BASED_MATCH)) {
+    // mMatch = intent.getParcelableExtra(GamesClient.EXTRA_TURN_BASED_MATCH);
+    // } else {
+    // mGameState = new GameState(this);
+    // }
+    //
+    // fillView();
+    //
+    // if (mMatch != null) {
+    // try {
+    // mGameState.deserialize(mMatch.getData());
+    // } catch (IOException e) {
+    // e.printStackTrace();
+    // } catch (ClassNotFoundException e) {
+    // e.printStackTrace();
+    // }
+    // }
+    //
+    // mGameArea.setOnTouchListener(new OnTouchListener() {
+    // @Override
+    // public boolean onTouch(View v, MotionEvent event) {
+    // if (!getGamesClient().isConnected()) {
+    // showToastConnecting();
+    // return true;
+    // }
+    // TextView scoreBlueView = (TextView) findViewById(R.id.scoreBlue);
+    // TextView scoreRedView = (TextView) findViewById(R.id.scoreRed);
+    // Integer scoreBlue = mGameState.getScore(Dot.Colour.CL_BLUE);
+    // Integer scoreRed = mGameState.getScore(Dot.Colour.CL_RED);
+    // scoreBlueView.setText(scoreBlue.toString());
+    // scoreRedView.setText(scoreRed.toString());
+    // return false;
+    // }
+    // });
   }
+
+  // private String getOpponentPlayerId() throws NotYetConnectedException {
+  // String currentPlayerId = getConnectedGamesClient().getCurrentPlayerId();
+  // ArrayList<String> playerIds = mMatch.getPlayerIds();
+  // String result = playerIds.get(0);
+  // if (result.equals(currentPlayerId)) {
+  // result = playerIds.get(1);
+  // }
+  // return result;
+  // }
+
+  // private void fillView() {
+  // setContentView(R.layout.activity_game);
+  // mGameArea.setGameState(mGameState);
+  //
+  // mPassButton.setOnClickListener(new View.OnClickListener() {
+  // @Override
+  // public void onClick(View v) {
+  // try {
+  // String opponentPlayerId;
+  // opponentPlayerId = getOpponentPlayerId();
+  // GamesClient gamesClient = getConnectedGamesClient();
+  // ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
+  // results.add(new PlayerResult(gamesClient.getCurrentPlayerId(), 1,
+  // PlayerResult.PLACING_UNINITIALIZED));
+  // results.add(new PlayerResult(opponentPlayerId, 0,
+  // PlayerResult.PLACING_UNINITIALIZED));
+  //
+  // gamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null,
+  // results);
+  // } catch (NotYetConnectedException e) {
+  // showToastConnecting();
+  // }
+  // }
+  //
+  // });
+  // }
 
   void showToastConnecting() {
     if (currentToast == null) {

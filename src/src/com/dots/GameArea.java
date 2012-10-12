@@ -2,6 +2,7 @@ package com.dots;
 
 import static com.dots.model.StoneColor.BLACK;
 import static com.dots.model.StoneColor.WHITE;
+import roboguice.RoboGuice;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -18,6 +19,7 @@ import com.dots.model.Game;
 import com.dots.model.Game.NoLibertiesException;
 import com.dots.model.Game.SpaceTakenException;
 import com.dots.model.Stone;
+import com.google.inject.Inject;
 
 public class GameArea extends ViewGroup {
   final static int PADDING = 3;
@@ -29,19 +31,14 @@ public class GameArea extends ViewGroup {
   /** Row-major. */
   final StoneView[][] stoneViews;
 
-  Game mGame;
+  @Inject Game mGame;
   GameState mGameState;
   int mCellSize;
   float[] mGrid;
 
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
-
-    mGame = new Game(10, BLACK);
-    mGame.add(
-        new Stone(1, 2, WHITE),
-        new Stone(3, 2, WHITE),
-        new Stone(4, 2, BLACK));
+    RoboGuice.injectMembers(context, this);
 
     stoneViews = new StoneView[mGame.getTableSize()][mGame.getTableSize()];
     for (Stone stone : mGame.getStones()) {
@@ -207,6 +204,16 @@ public class GameArea extends ViewGroup {
     public void onStoneCaptured(Stone stone) {
       StoneView stoneView = stoneViews[stone.getRow()][stone.getCol()];
       removeView(stoneView);
+    }
+
+    @Override
+    public void onGameReset() {
+      for (int row = 0; row < mGame.getTableSize(); row++) {
+        for (int col = 0; col < mGame.getTableSize(); col++) {
+          stoneViews[row][col] = null;
+        }
+      }
+      removeAllViews();
     }
   }
 

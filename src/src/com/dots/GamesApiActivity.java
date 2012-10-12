@@ -4,6 +4,8 @@ import static com.dots.Util.TAG;
 
 import java.util.ArrayList;
 
+import roboguice.activity.RoboActivity;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
@@ -15,7 +17,7 @@ import com.google.android.gms.common.ConnectionStatus;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;
 
-public abstract class GamesApiActivity extends Activity implements OnConnectionFailedListener,
+public abstract class GamesApiActivity extends RoboActivity implements OnConnectionFailedListener,
     GamesApiAware {
   private static final int REQUEST_CODE_RECONNECT = 9000;
   private GamesClient mGamesClient;

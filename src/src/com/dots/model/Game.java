@@ -5,14 +5,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import roboguice.util.Ln;
+
 public class Game {
-  /** Also serves as history: order is addition order. */
+  /**
+   * Also serves as history: order is addition order.
+   */
   final List<Stone> stones;
   final int tableSize;
   final Stone[][] stonesIndex;
   final StoneColor myColor;
   StoneColor currentTurn;
   GameListener listener;
+  boolean lastPassed;
 
   /** Table of viewed points for graph search. */
   final boolean[][] seenIndex;
@@ -55,6 +60,28 @@ public class Game {
     return stonesIndex[row][col];
   }
 
+  public void passTurn() {
+    currentTurn = currentTurn.other();
+    Ln.i(currentTurn + " passed");
+    if (lastPassed) {
+      Ln.i("Two consecutive passes: game ended");
+      resetGame();
+    }
+    lastPassed = true;
+  }
+
+  private void resetGame() {
+    stones.clear();
+    for (int row = 0; row < tableSize; row++) {
+      for (int col = 0; col < tableSize; col++) {
+        stonesIndex[row][col] = null;
+      }
+    }
+    currentTurn = BLACK;
+    lastPassed = false;
+    listener.onGameReset();
+  }
+
   public void makeTurnAt(int row, int col) throws SpaceTakenException, NoLibertiesException {
     if (stonesIndex[row][col] != null) {
       throw new SpaceTakenException();
@@ -83,6 +110,7 @@ public class Game {
       throw new NoLibertiesException();
     }
 
+    lastPassed = false;
     currentTurn = currentTurn.other();
     listener.onStoneAdded(stone);
   }
