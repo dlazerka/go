@@ -1,5 +1,8 @@
 package com.dots;
 
+import static com.dots.model.StoneColor.*;
+import com.dots.model.Stone;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -22,7 +25,7 @@ class StoneView extends View {
     super.onLayout(changed, left, top, right, bottom);
 
     this.mSize = right - left;
-    Shader shader = stone.isWhite() ? getWhite() : getBlack();
+    Shader shader = stone.getColor() == WHITE ? getWhite() : getBlack();
     mFillPaint.setShader(shader);
   }
 

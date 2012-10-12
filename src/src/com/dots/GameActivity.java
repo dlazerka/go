@@ -51,10 +51,10 @@ public class GameActivity extends GamesApiActivity {
     mGameArea.setOnTouchListener(new OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
-        if (!getGamesClient().isConnected()) {
-          showToastConnecting();
-          return true;
-        }
+//        if (!getGamesClient().isConnected()) {
+//          showToastConnecting();
+//          return true;
+//        }
 
         TextView scoreBlueView = (TextView) findViewById(R.id.scoreBlue);
         TextView scoreRedView = (TextView) findViewById(R.id.scoreRed);
