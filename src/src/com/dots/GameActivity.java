@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
@@ -79,29 +80,28 @@ public class GameActivity extends GamesApiActivity {
 
   private void fillView() {
     setContentView(R.layout.activity_game);
-    Button surrenderButton = (Button) findViewById(R.id.surrenderButton);
+    Button passButton = (Button) findViewById(R.id.passButton);
     mGameArea = (GameArea) findViewById(R.id.desk);
     mGameArea.setGameState(mGameState);
 
-    surrenderButton.setOnClickListener(new View.OnClickListener() {
+    Typeface font = Typeface.createFromAsset(getAssets(), "fonts/Shojumaru-Regular.ttf");
+    passButton.setTypeface(font);
+
+    passButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (mMatch == null) {
-          finish();
-        } else {
-          try {
-            String opponentPlayerId;
-            opponentPlayerId = getOpponentPlayerId();
-            GamesClient gamesClient = getConnectedGamesClient();
-            ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
-            results.add(new PlayerResult(gamesClient.getCurrentPlayerId(), 1,
-                PlayerResult.PLACING_UNINITIALIZED));
-            results.add(new PlayerResult(opponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
+        try {
+          String opponentPlayerId;
+          opponentPlayerId = getOpponentPlayerId();
+          GamesClient gamesClient = getConnectedGamesClient();
+          ArrayList<PlayerResult> results = new ArrayList<PlayerResult>(2);
+          results.add(new PlayerResult(gamesClient.getCurrentPlayerId(), 1,
+              PlayerResult.PLACING_UNINITIALIZED));
+          results.add(new PlayerResult(opponentPlayerId, 0, PlayerResult.PLACING_UNINITIALIZED));
 
-            gamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
-          } catch (NotYetConnectedException e) {
-            showToastConnecting();
-          }
+          gamesClient.finishTurnBasedMatch(mGameState, mMatch.getMatchId(), null, results);
+        } catch (NotYetConnectedException e) {
+          showToastConnecting();
         }
       }
 

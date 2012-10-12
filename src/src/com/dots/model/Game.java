@@ -3,10 +3,12 @@ package com.dots.model;
 import static com.dots.model.StoneColor.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class Game {
+  /** Also serves as history: order is addition order. */
+  final List<Stone> stones;
   final int tableSize;
-  final Collection<Stone> stones;
   final Stone[][] stonesIndex;
   final StoneColor myColor;
   StoneColor currentTurn;

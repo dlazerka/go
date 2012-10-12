@@ -43,11 +43,14 @@
         a:textSize="50sp" />
 
     <Button
-        a:id="@+id/surrenderButton"
-        a:visibility="gone"
-        a:layout_width="match_parent"
+        a:id="@+id/passButton"
+        a:layout_width="wrap_content"
         a:layout_height="wrap_content"
         a:layout_alignParentBottom="true"
-        a:text="@string/surrender" />
- -->
+        a:layout_alignParentRight="true"
+        a:text="@string/Pass"
+        a:textSize="37dp"
+        a:background="#33000000"
+        a:padding="5dp"
+        />
 </RelativeLayout>
