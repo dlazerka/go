@@ -15,38 +15,33 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.dots.model.Game;
+import com.dots.model.Game.NoLibertiesException;
 import com.dots.model.Game.SpaceTakenException;
 import com.dots.model.Stone;
 
 public class GameArea extends ViewGroup {
-  Game mGame;
-  GameState mGameState;
   final static int PADDING = 3;
-  final static int STONE_SIZE = 34;
 
-  float[] mGrid;
-
+  /** For painting grid. */
   final Paint mPaintGrid = new Paint();
-//  final Paint mPaint;
-
   /** Layout area. Mutable. */
   final Rect mRect = new Rect(0, 0, 0, 0);
-
   /** Row-major. */
   final StoneView[][] stoneViews;
+
+  Game mGame;
+  GameState mGameState;
+  int mCellSize;
+  float[] mGrid;
 
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
 
     mGame = new Game(10, BLACK);
-    try {
-      mGame.add(
-          new Stone(1, 2, WHITE),
-          new Stone(3, 2, WHITE),
-          new Stone(4, 2, BLACK));
-    } catch (SpaceTakenException e) {
-      throw new IllegalStateException();
-    }
+    mGame.add(
+        new Stone(1, 2, WHITE),
+        new Stone(3, 2, WHITE),
+        new Stone(4, 2, BLACK));
 
     stoneViews = new StoneView[mGame.getTableSize()][mGame.getTableSize()];
     for (Stone stone : mGame.getStones()) {
@@ -75,15 +70,15 @@ public class GameArea extends ViewGroup {
 
   /** @return Position on the canvas for given row (zero-based) */
   private int getX(int row) {
-    int l = mRect.left + STONE_SIZE / 2 + PADDING;
-    int r = mRect.right - STONE_SIZE / 2 - PADDING;
+    int l = mRect.left + mCellSize / 2 + PADDING;
+    int r = mRect.right - mCellSize / 2 - PADDING;
     return getCoord(row, l, r);
   }
 
   /** @return Position on canvas for given row (zero-based) */
   private int getY(int col) {
-    int l = mRect.top + STONE_SIZE / 2 + PADDING;
-    int r = mRect.bottom - STONE_SIZE / 2 - PADDING;
+    int l = mRect.top + mCellSize / 2 + PADDING;
+    int r = mRect.bottom - mCellSize / 2 - PADDING;
     return getCoord(col, l, r);
   }
 
@@ -118,6 +113,9 @@ public class GameArea extends ViewGroup {
     mRect.right = Math.min(r, b);
     mRect.bottom = Math.min(r, b);
 
+    mCellSize = (int) (mRect.width() / (float) mGame.getTableSize());
+    mCellSize -= mCellSize % 2;
+
     if (mGrid == null) {
       mGrid = new float[mGame.getTableSize() * 8];
 
@@ -146,11 +144,11 @@ public class GameArea extends ViewGroup {
       int y = getY(stone.getRow());
       StoneView stoneView = stoneViews[stone.getRow()][stone.getCol()];
       stoneView.layout(
-          x - STONE_SIZE / 2,
-          y - STONE_SIZE / 2,
-          x + STONE_SIZE / 2,
-          y + STONE_SIZE / 2);
-//      stoneView.layout(PADDING, PADDING, 120 - PADDING, 120 - PADDING);
+          x - mCellSize / 2,
+          y - mCellSize / 2,
+          x + mCellSize / 2,
+          y + mCellSize / 2);
+      // stoneView.layout(PADDING, PADDING, 120 - PADDING, 120 - PADDING);
     }
   }
 
@@ -160,95 +158,109 @@ public class GameArea extends ViewGroup {
       case MotionEvent.ACTION_DOWN:
         int row = getRow(event.getY());
         int col = getCol(event.getX());
-        Log.d(Util.TAG, "Touch at row " + row + ", col" + col);
-        try {
-          mGame.makeTurnAt(row, col);
-        } catch (SpaceTakenException e) {
-          Toast.makeText(getContext(), "This space is taken", Toast.LENGTH_SHORT).show();
+        if (row >= 0 && row < mGame.getTableSize() &&
+            col >= 0 && col < mGame.getTableSize()) {
+
+          Log.d(Util.TAG, "Touch at row " + row + ", col" + col);
+          try {
+            mGame.makeTurnAt(row, col);
+          } catch (SpaceTakenException e) {
+            Toast.makeText(getContext(), "This space is taken", Toast.LENGTH_SHORT).show();
+          } catch (NoLibertiesException e) {
+            Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
+          }
         }
 
-//        if (!mGameState.isGamesApiConnected()) {
-//          throw new IllegalStateException(GameActivity.class
-//              + " must have checked for connectivity.");
-//        } else {
-//          xx = event.getX();
-//          yy = event.getY();
-//          if (PADDING <= xx && xx <= PADDING + STONE_SIZE * mGame.getTableSize() &&
-//              PADDING <= yy && yy <= PADDING + STONE_SIZE * mGame.getTableSize()) {
-//            Colour currentTurn = mGameState.getCurrentTurn();
-//            if (currentTurn != null) {
-//              if (mGameState.addDot(currentTurn, roundCoordinate(xx), roundCoordinate(yy))) {
-//                invalidate();
-//                return true;
-//              }
-//            } else {
-//              Toast.makeText(getContext(), "Waiting for opponent's turn", Toast.LENGTH_LONG).show();
-//            }
-//          }
-//        }
+        // if (!mGameState.isGamesApiConnected()) {
+        // throw new IllegalStateException(GameActivity.class
+        // + " must have checked for connectivity.");
+        // } else {
+        // xx = event.getX();
+        // yy = event.getY();
+        // if (PADDING <= xx && xx <= PADDING + STONE_SIZE *
+        // mGame.getTableSize() &&
+        // PADDING <= yy && yy <= PADDING + STONE_SIZE * mGame.getTableSize()) {
+        // Colour currentTurn = mGameState.getCurrentTurn();
+        // if (currentTurn != null) {
+        // if (mGameState.addDot(currentTurn, roundCoordinate(xx),
+        // roundCoordinate(yy))) {
+        // invalidate();
+        // return true;
+        // }
+        // } else {
+        // Toast.makeText(getContext(), "Waiting for opponent's turn",
+        // Toast.LENGTH_LONG).show();
+        // }
+        // }
+        // }
     }
     return super.onTouchEvent(event);
   }
 
   private class GameListener implements com.dots.model.GameListener {
     @Override
-    public void onStoneAdded(StoneAddedEvent event) {
-      addStoneView(event.getStone());
+    public void onStoneAdded(Stone stone) {
+      addStoneView(stone);
+    }
+
+    @Override
+    public void onStoneCaptured(Stone stone) {
+      StoneView stoneView = stoneViews[stone.getRow()][stone.getCol()];
+      removeView(stoneView);
     }
   }
 
-
-//@Override
-//protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//  super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//
-//  if (getMeasuredWidth() < getMeasuredHeight()) {
-//    getLayoutParams().height = getMeasuredWidth();
-//  } else {
-//    getLayoutParams().width = getMeasuredHeight();
-//  }
-//}
-//
-//private void drawDotsForColor(Dot.Colour color, Canvas canvas) {
-//  int savedColor = mPaint.getColor();
-//  try {
-//    // Color
-//    mPaint.setColor(Color.BLACK);
-//    for (Dot d : mGameState.getDots(color)) {
-//      float x0 = cell2Coord(d.x);
-//      float y0 = cell2Coord(d.y);
-//
-//      canvas.drawCircle(x0, y0, 10, mPaint);
-//      for (int i = 0; i < (Dot.NUM_DIRECTIONS >> 1); ++i) {
-//        if (d.neignbours[i]) {
-//          float x1 = cell2Coord(d.getNx(i));
-//          float y1 = cell2Coord(d.getNy(i));
-//          canvas.drawLine(x0, y0, x1, y1, mPaint);
-//        }
-//      }
-//    }
-//    //
-//  } finally {
-//    mPaint.setStrokeWidth(1);
-//    mPaint.setColor(savedColor);
-//  }
-//}
-//
-//private void drawDots(Canvas canvas) {
-//  drawDotsForColor(Dot.Colour.CL_BLUE, canvas);
-//  drawDotsForColor(Dot.Colour.CL_RED, canvas);
-//}
-//
-//public void erase() {
-//  mGameState.reset();
-//  invalidate();
-//}
-//
-//private int roundCoordinate(float t) {
-//  return (int) ((t - PADDING) / STONE_SIZE + 0.5);
-//}
-//
-//private int cell2Coord(int t) {
-//  return PADDING + t * STONE_SIZE;
-//}
+  // @Override
+  // protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+  // super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+  //
+  // if (getMeasuredWidth() < getMeasuredHeight()) {
+  // getLayoutParams().height = getMeasuredWidth();
+  // } else {
+  // getLayoutParams().width = getMeasuredHeight();
+  // }
+  // }
+  //
+  // private void drawDotsForColor(Dot.Colour color, Canvas canvas) {
+  // int savedColor = mPaint.getColor();
+  // try {
+  // // Color
+  // mPaint.setColor(Color.BLACK);
+  // for (Dot d : mGameState.getDots(color)) {
+  // float x0 = cell2Coord(d.x);
+  // float y0 = cell2Coord(d.y);
+  //
+  // canvas.drawCircle(x0, y0, 10, mPaint);
+  // for (int i = 0; i < (Dot.NUM_DIRECTIONS >> 1); ++i) {
+  // if (d.neignbours[i]) {
+  // float x1 = cell2Coord(d.getNx(i));
+  // float y1 = cell2Coord(d.getNy(i));
+  // canvas.drawLine(x0, y0, x1, y1, mPaint);
+  // }
+  // }
+  // }
+  // //
+  // } finally {
+  // mPaint.setStrokeWidth(1);
+  // mPaint.setColor(savedColor);
+  // }
+  // }
+  //
+  // private void drawDots(Canvas canvas) {
+  // drawDotsForColor(Dot.Colour.CL_BLUE, canvas);
+  // drawDotsForColor(Dot.Colour.CL_RED, canvas);
+  // }
+  //
+  // public void erase() {
+  // mGameState.reset();
+  // invalidate();
+  // }
+  //
+  // private int roundCoordinate(float t) {
+  // return (int) ((t - PADDING) / STONE_SIZE + 0.5);
+  // }
+  //
+  // private int cell2Coord(int t) {
+  // return PADDING + t * STONE_SIZE;
+  // }
 }

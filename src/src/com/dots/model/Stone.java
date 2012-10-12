@@ -11,6 +11,11 @@ public class Stone {
     this.color = color;
   }
 
+  @Override
+  public String toString() {
+    return color + "(" + row + ", " + col + ")";
+  }
+
   public int getRow() {
     return row;
   }
