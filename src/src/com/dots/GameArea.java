@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.dots.model.Game;
+import com.dots.model.Game.KoRuleException;
 import com.dots.model.Game.NoLibertiesException;
 import com.dots.model.Game.SpaceTakenException;
 import com.dots.model.Stone;
@@ -31,7 +32,8 @@ public class GameArea extends ViewGroup {
   /** Row-major. */
   final StoneView[][] stoneViews;
 
-  @Inject Game mGame;
+  @Inject
+  Game mGame;
   GameState mGameState;
   int mCellSize;
   float[] mGrid;
@@ -162,9 +164,16 @@ public class GameArea extends ViewGroup {
           try {
             mGame.makeTurnAt(row, col);
           } catch (SpaceTakenException e) {
-            Toast.makeText(getContext(), "This space is taken", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(getContext(), "This space is taken",
+            // Toast.LENGTH_SHORT).show();
           } catch (NoLibertiesException e) {
             Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
+          } catch (KoRuleException e) {
+            String msg = "Ko rule violation";
+            if (e.getTurnsAgo() > 2) {
+              msg = "Super ko rule violation " + e.getTurnsAgo() + " turns ago";
+            }
+            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
           }
         }
 

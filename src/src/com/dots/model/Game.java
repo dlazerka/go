@@ -3,15 +3,16 @@ package com.dots.model;
 import static com.dots.model.StoneColor.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import roboguice.util.Ln;
 
 public class Game {
-  /**
-   * Also serves as history: order is addition order.
-   */
-  final List<Stone> stones;
+  final HashSet<Stone> stones;
   final int tableSize;
   final Stone[][] stonesIndex;
   final StoneColor myColor;
@@ -19,16 +20,31 @@ public class Game {
   GameListener listener;
   boolean lastPassed;
 
+  /**
+   * Komi multiplied by two (to store to int). Komi is score that added to
+   * White's to compensate for Black first-move advantage. In handicap, komi is
+   * 0.5, otherwise: American rules: 7.5 Chineese rules: 5.5. Japanese rules:
+   * 6.5 (since 2002).
+   */
+  int twoKomi = 13;
+
+  /**
+   * Ordered collection of game states. One state per turn. The very first state
+   * should contain one (or more for handicap) black stones, no white.
+   */
+  List<Set<Stone>> history;
+
   /** Table of viewed points for graph search. */
   final boolean[][] seenIndex;
 
   public Game(int tableSize, StoneColor myColor) {
     this.tableSize = tableSize;
     this.myColor = myColor;
-    stones = new ArrayList<Stone>(tableSize * tableSize);
+    stones = new HashSet<Stone>(tableSize * tableSize);
     stonesIndex = new Stone[tableSize][tableSize];
     seenIndex = new boolean[tableSize][tableSize];
     currentTurn = BLACK;
+    history = new ArrayList<Set<Stone>>(tableSize * tableSize / 2);
   }
 
   public int getTableSize() {
@@ -44,6 +60,11 @@ public class Game {
   }
 
   /** Bulk fill the table. No checks are made. */
+  public void add(Collection<Stone> newStones) {
+    add(newStones.toArray(new Stone[newStones.size()]));
+  }
+
+  /** Bulk fill the table. No checks are made. */
   public void add(Stone... newStones) {
     for (int i = 0; i < newStones.length; i++) {
       Stone stone = newStones[i];
@@ -52,17 +73,17 @@ public class Game {
     }
   }
 
-  /** May accept invalid row and col */
+  /** May accept invalid row and col. */
   public Stone stoneAt(int row, int col) {
-    if (row < 0 || col < 0 || row > tableSize - 1 || col > tableSize - 1) {
+    if (row < 0 || col < 0 || row > tableSize - 1 || col > tableSize - 1)
       return null;
-    }
     return stonesIndex[row][col];
   }
 
   public void passTurn() {
     currentTurn = currentTurn.other();
     Ln.i(currentTurn + " passed");
+    history.add(newState());
     if (lastPassed) {
       Ln.i("Two consecutive passes: game ended");
       resetGame();
@@ -70,22 +91,32 @@ public class Game {
     lastPassed = true;
   }
 
-  private void resetGame() {
+  @SuppressWarnings("unchecked")
+  Set<Stone> newState() {
+    return Collections.unmodifiableSet((Set<Stone>) stones.clone());
+  }
+
+  void resetGame() {
+    history.clear();
+    clearState();
+    currentTurn = BLACK;
+    lastPassed = false;
+    listener.onGameReset();
+  }
+
+  void clearState() {
     stones.clear();
     for (int row = 0; row < tableSize; row++) {
       for (int col = 0; col < tableSize; col++) {
         stonesIndex[row][col] = null;
       }
     }
-    currentTurn = BLACK;
-    lastPassed = false;
-    listener.onGameReset();
   }
 
-  public void makeTurnAt(int row, int col) throws SpaceTakenException, NoLibertiesException {
-    if (stonesIndex[row][col] != null) {
+  public void makeTurnAt(int row, int col) throws SpaceTakenException, NoLibertiesException,
+      KoRuleException {
+    if (stonesIndex[row][col] != null)
       throw new SpaceTakenException();
-    }
     Stone stone = new Stone(row, col, currentTurn);
 
     // Adding, but may remove later, in case move is invalid (no liberty).
@@ -110,12 +141,43 @@ public class Game {
       throw new NoLibertiesException();
     }
 
+    Set<Stone> state = newState();
+    // Check super ko rule.
+    int turnNo = history.lastIndexOf(state);
+    if (turnNo > -1) {
+      Set<Stone> lastState = history.get(history.size() - 1);
+      clearState();
+      add(lastState);
+      throw new KoRuleException(history.size() - turnNo);
+    }
+    history.add(state);
+
     lastPassed = false;
     currentTurn = currentTurn.other();
-    listener.onStoneAdded(stone);
+    notifyListener();
   }
 
-  private Stone[] getStonesAround(int row, int col) {
+  /** Notifies listener for differences that occured between two last game states. */
+  void notifyListener() {
+    Set<Stone> prevState = history.size() > 1
+        ? history.get(history.size() - 2)
+        : Collections.<Stone>emptySet();
+    Set<Stone> newState = history.get(history.size() - 1);
+    Set<Stone> prevStateM = new HashSet<Stone>(prevState);
+    Set<Stone> newStateM = new HashSet<Stone>(newState);
+
+    prevStateM.removeAll(newState);
+    for (Stone stone : prevStateM) {
+      listener.onStoneCaptured(stone);
+    }
+
+    newStateM.removeAll(prevState);
+    for (Stone stone : newStateM) {
+      listener.onStoneAdded(stone);
+    }
+  }
+
+  Stone[] getStonesAround(int row, int col) {
     Stone[] stonesAround = new Stone[] {
         stoneAt(row - 1, col),
         stoneAt(row + 1, col),
@@ -127,7 +189,7 @@ public class Game {
   /**
    * Given stone or its group has at least one liberty. Depth-first search.
    */
-  private boolean hasLiberty(Stone stone) {
+  boolean hasLiberty(Stone stone) {
     int row = stone.row;
     int col = stone.col;
 
@@ -149,9 +211,8 @@ public class Game {
     for (int i = 0; i < 4; i++) {
       Stone s = stonesAround[i];
       if (s != null && !seenIndex[s.row][s.col] && s.color == stone.color) {
-        if (hasLiberty(s)) {
+        if (hasLiberty(s))
           return true;
-        }
       }
     }
     return false;
@@ -161,11 +222,10 @@ public class Game {
    * Depth-first search.
    * Seen index is not needed, because we remove seen vertices.
    */
-  private void capture(Stone stone) {
+  void capture(Stone stone) {
     int row = stone.row;
     int col = stone.col;
     remove(stone);
-    listener.onStoneCaptured(stone);
     Stone[] stonesAround = getStonesAround(row, col);
     for (int i = 0; i < 4; i++) {
       Stone s = stonesAround[i];
@@ -179,7 +239,7 @@ public class Game {
     }
   }
 
-  private void remove(Stone stone) {
+  void remove(Stone stone) {
     stones.remove(stone);
     stonesIndex[stone.row][stone.col] = null;
   }
@@ -192,5 +252,17 @@ public class Game {
   }
 
   public class NoLibertiesException extends Exception {
+  }
+
+  public class KoRuleException extends Exception {
+    final int turnsAgo;
+
+    public KoRuleException(int turnsAgo) {
+      this.turnsAgo = turnsAgo;
+    }
+
+    public int getTurnsAgo() {
+      return turnsAgo;
+    }
   }
 }
