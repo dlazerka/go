@@ -14,7 +14,7 @@
         a:layout_height="match_parent"
         a:useDefaultMargins="true"
         a:alignmentMode="alignBounds"
-        a:background="@drawable/teak"
+        a:background="@drawable/maple1000x1000"
         >
     </com.dots.GameArea>
 
