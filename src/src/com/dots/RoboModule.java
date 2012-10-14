@@ -16,6 +16,6 @@ public class RoboModule extends AbstractModule {
   @Provides
   @Singleton
   Game game() {
-    return new Game(10, BLACK);
+    return new Game(19, BLACK);
   }
 }

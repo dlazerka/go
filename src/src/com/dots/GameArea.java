@@ -1,17 +1,14 @@
 package com.dots;
 
-import static com.dots.model.StoneColor.BLACK;
-import static com.dots.model.StoneColor.WHITE;
 import roboguice.RoboGuice;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
@@ -41,6 +38,7 @@ public class GameArea extends ViewGroup {
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
     RoboGuice.injectMembers(context, this);
+    setKeepScreenOn(true);
 
     stoneViews = new StoneView[mGame.getTableSize()][mGame.getTableSize()];
     for (Stone stone : mGame.getStones()) {
@@ -52,7 +50,26 @@ public class GameArea extends ViewGroup {
     mPaintGrid.setStrokeCap(Paint.Cap.ROUND);
 
     // Padding for drawing children (stones);
-    setPadding(PADDING, PADDING, PADDING, PADDING);
+//    setPadding(PADDING, PADDING, PADDING, PADDING);
+
+    addOnLayoutChangeListener(new OnLayoutChangeListener() {
+      @Override
+      public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft,
+          int oldTop, int oldRight, int oldBottom) {
+        View.getDefaultSize(1, 1);
+      }
+    });
+    addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+      @Override
+      public void onViewDetachedFromWindow(View v) {
+        View.getDefaultSize(1, 1);
+      }
+
+      @Override
+      public void onViewAttachedToWindow(View v) {
+        View.getDefaultSize(1, 1);
+      }
+    });
 
     mGame.setListener(new GameListener());
   }
@@ -89,12 +106,12 @@ public class GameArea extends ViewGroup {
 
   /** @return Row (zero-based) for given position on the canvas */
   private int getRow(float y) {
-    return Math.round(0.5f + y / (mRect.bottom - mRect.top) * mGame.getTableSize()) - 1;
+    return Math.round(0.5f + (y - PADDING) / (mRect.bottom - mRect.top - 2*PADDING) * mGame.getTableSize()) - 1;
   }
 
   /** @return Column (zero-based) for given position on the canvas */
   private int getCol(float x) {
-    return Math.round(0.5f + x / (mRect.right - mRect.left) * mGame.getTableSize()) - 1;
+    return Math.round(0.5f + (x - PADDING) / (mRect.right - mRect.left - 2*PADDING) * mGame.getTableSize()) - 1;
   }
 
   @Override
@@ -112,7 +129,7 @@ public class GameArea extends ViewGroup {
     mRect.right = Math.min(r, b);
     mRect.bottom = Math.min(r, b);
 
-    mCellSize = (int) (mRect.width() / (float) mGame.getTableSize());
+    mCellSize = mRect.width() / mGame.getTableSize();
     mCellSize -= mCellSize % 2;
 
     if (mGrid == null) {
@@ -160,7 +177,6 @@ public class GameArea extends ViewGroup {
         if (row >= 0 && row < mGame.getTableSize() &&
             col >= 0 && col < mGame.getTableSize()) {
 
-          Log.d(Util.TAG, "Touch at row " + row + ", col" + col);
           try {
             mGame.makeTurnAt(row, col);
           } catch (SpaceTakenException e) {

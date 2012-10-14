@@ -23,8 +23,12 @@ public class GameActivity extends GamesApiActivity {
 
   @InjectView(R.id.desk)
   private GameArea mGameArea;
-  @InjectView(R.id.passButton)
+  @InjectView(R.id.pass)
   Button mPassButton;
+  @InjectView(R.id.back)
+  Button mBackButton;
+  @InjectView(R.id.forward)
+  Button mForwardButton;
   @Inject
   Game mGame;
 
@@ -34,11 +38,18 @@ public class GameActivity extends GamesApiActivity {
 
     Typeface font = Typeface.createFromAsset(getAssets(), "fonts/Shojumaru-Regular.ttf");
     mPassButton.setTypeface(font);
+    mBackButton.setTypeface(font);
+    mForwardButton.setTypeface(font);
     mPassButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
         mGame.passTurn();
         Toast.makeText(GameActivity.this, "Passed", Toast.LENGTH_SHORT).show();
+      }
+    });
+    mBackButton.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
       }
     });
 

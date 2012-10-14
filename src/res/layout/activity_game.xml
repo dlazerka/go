@@ -12,15 +12,13 @@
         a:id="@+id/desk"
         a:layout_width="match_parent"
         a:layout_height="match_parent"
-        a:useDefaultMargins="true"
         a:alignmentMode="alignBounds"
-        a:background="@drawable/maple1000x1000"
-        >
+        a:background="@drawable/beech"
+        a:useDefaultMargins="true" >
     </com.dots.GameArea>
 
     <TextView
         a:id="@+id/scoreBlue"
-        a:visibility="gone"
         a:layout_width="wrap_content"
         a:layout_height="wrap_content"
         a:layout_alignParentLeft="true"
@@ -28,11 +26,11 @@
         a:paddingLeft="@dimen/padding_large"
         a:text="@string/defaultScore"
         a:textColor="#00f"
-        a:textSize="50sp" />
+        a:textSize="50sp"
+        a:visibility="gone" />
 
     <TextView
         a:id="@+id/scoreRed"
-        a:visibility="gone"
         a:layout_width="wrap_content"
         a:layout_height="wrap_content"
         a:layout_alignParentRight="true"
@@ -40,17 +38,31 @@
         a:paddingRight="@dimen/padding_large"
         a:text="@string/defaultScore"
         a:textColor="#f00"
-        a:textSize="50sp" />
+        a:textSize="50sp"
+        a:visibility="gone" />
 
     <Button
-        a:id="@+id/passButton"
-        a:layout_width="wrap_content"
-        a:layout_height="wrap_content"
+        a:id="@+id/back"
+        style="@style/button"
+        a:layout_alignParentBottom="true"
+        a:layout_alignParentLeft="true"
+        a:layout_width="50dp"
+        a:text="@string/lt" />
+
+    <Button
+        a:id="@+id/forward"
+        style="@style/button"
+        a:layout_alignParentBottom="true"
+        a:layout_width="60dp"
+        a:layout_marginLeft="40dp"
+        a:layout_toRightOf="@+id/back"
+        a:text="@string/gt" />
+    
+    <Button
+        a:id="@+id/pass"
+        style="@style/button"
         a:layout_alignParentBottom="true"
         a:layout_alignParentRight="true"
-        a:text="@string/Pass"
-        a:textSize="37dp"
-        a:background="#33000000"
-        a:padding="5dp"
-        />
+        a:text="@string/Pass" />
+
 </RelativeLayout>

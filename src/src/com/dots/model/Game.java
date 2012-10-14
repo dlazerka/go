@@ -15,16 +15,18 @@ public class Game {
   final HashSet<Stone> stones;
   final int tableSize;
   final Stone[][] stonesIndex;
-  final StoneColor myColor;
+//  final StoneColor myColor;
   StoneColor currentTurn;
   GameListener listener;
   boolean lastPassed;
 
   /**
-   * Komi multiplied by two (to store to int). Komi is score that added to
-   * White's to compensate for Black first-move advantage. In handicap, komi is
-   * 0.5, otherwise: American rules: 7.5 Chineese rules: 5.5. Japanese rules:
-   * 6.5 (since 2002).
+   * Komi multiplied by two (to store to int)
+   * Komi is score that added to White's to compensate for Black first-move advantage.
+   * In handicap, komi is 0.5, otherwise:
+   * American rules: 7.5
+   * Japanese rules: 6.5 (since 2002).
+   * Chineese rules: 5.5.
    */
   int twoKomi = 13;
 
@@ -39,7 +41,7 @@ public class Game {
 
   public Game(int tableSize, StoneColor myColor) {
     this.tableSize = tableSize;
-    this.myColor = myColor;
+//    this.myColor = myColor;
     stones = new HashSet<Stone>(tableSize * tableSize);
     stonesIndex = new Stone[tableSize][tableSize];
     seenIndex = new boolean[tableSize][tableSize];
@@ -55,8 +57,17 @@ public class Game {
     return stones;
   }
 
-  public StoneColor getMyColor() {
-    return myColor;
+//  public StoneColor getMyColor() {
+//    return myColor;
+//  }
+
+  /**
+   * Chinese rules score: number of stones + number of captured dead stones.
+   * Moonshine-life is not counted.
+   * @return positive value: black wins, negative: white wins, zero: black wins (+1/2).
+   */
+  public int getCurrentScore() {
+    return 0;
   }
 
   /** Bulk fill the table. No checks are made. */
@@ -142,7 +153,7 @@ public class Game {
     }
 
     Set<Stone> state = newState();
-    // Check super ko rule.
+    // Check positional super ko (PSK) rule.
     int turnNo = history.lastIndexOf(state);
     if (turnNo > -1) {
       Set<Stone> lastState = history.get(history.size() - 1);
