@@ -1,5 +1,9 @@
 package com.dots;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import roboguice.RoboGuice;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -16,6 +20,7 @@ import com.dots.model.Game;
 import com.dots.model.Game.KoRuleException;
 import com.dots.model.Game.NoLibertiesException;
 import com.dots.model.Game.SpaceTakenException;
+import com.dots.model.GameState;
 import com.dots.model.Stone;
 import com.google.inject.Inject;
 
@@ -30,8 +35,10 @@ public class GameArea extends ViewGroup {
   final StoneView[][] stoneViews;
 
   @Inject
-  Game mGame;
-  GameState mGameState;
+  Game game;
+
+  GameState gameState;
+
   int mCellSize;
   float[] mGrid;
 
@@ -40,38 +47,34 @@ public class GameArea extends ViewGroup {
     RoboGuice.injectMembers(context, this);
     setKeepScreenOn(true);
 
-    stoneViews = new StoneView[mGame.getTableSize()][mGame.getTableSize()];
-    for (Stone stone : mGame.getStones()) {
-      addStoneView(stone);
-    }
+    stoneViews = new StoneView[game.getTableSize()][game.getTableSize()];
+    setGameState(game.getLastState());
 
-    mPaintGrid.setColor(Color.DKGRAY);
+    mPaintGrid.setColor(Color.BLACK);
     mPaintGrid.setStrokeWidth(2f);
     mPaintGrid.setStrokeCap(Paint.Cap.ROUND);
 
-    // Padding for drawing children (stones);
-//    setPadding(PADDING, PADDING, PADDING, PADDING);
+    game.setListener(new GameListener());
+  }
 
-    addOnLayoutChangeListener(new OnLayoutChangeListener() {
-      @Override
-      public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft,
-          int oldTop, int oldRight, int oldBottom) {
-        View.getDefaultSize(1, 1);
-      }
-    });
-    addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
-      @Override
-      public void onViewDetachedFromWindow(View v) {
-        View.getDefaultSize(1, 1);
+  void setGameState(GameState state) {
+    if (gameState != null) {
+      Set<Stone> prevStones = gameState.getStones();
+      Set<Stone> newStones = state.getStones();
+      Set<Stone> prevStonesM = new HashSet<Stone>(prevStones);
+      Set<Stone> newStonesM = new HashSet<Stone>(newStones);
+
+      prevStonesM.removeAll(newStones);
+      for (Stone stone : prevStonesM) {
+        removeStoneView(stone);
       }
 
-      @Override
-      public void onViewAttachedToWindow(View v) {
-        View.getDefaultSize(1, 1);
+      newStonesM.removeAll(prevStones);
+      for (Stone stone : newStonesM) {
+        addStoneView(stone);
       }
-    });
-
-    mGame.setListener(new GameListener());
+    }
+    gameState = state;
   }
 
   private void addStoneView(Stone stone) {
@@ -80,8 +83,18 @@ public class GameArea extends ViewGroup {
     addView(view);
   }
 
-  void setGameState(GameState gameState) {
-    mGameState = gameState;
+  private void removeStoneView(Stone stone) {
+    StoneView stoneView = stoneViews[stone.getRow()][stone.getCol()];
+    removeView(stoneView);
+  }
+
+  void removeAllStoneViews() {
+    removeAllViews();
+    for (int i = 0; i < stoneViews.length; i++) {
+      for (int j = 0; j < stoneViews[i].length; j++) {
+        stoneViews[i][j] = null;
+      }
+    }
   }
 
   /** @return Position on the canvas for given row (zero-based) */
@@ -101,17 +114,17 @@ public class GameArea extends ViewGroup {
   private int getCoord(int i, int min, int max) {
     // l + (r-l) * i/N
     // But N-1 because we want i/N to be equal to 1 at the last line.
-    return min + (max - min) * i / (mGame.getTableSize() - 1);
+    return min + (max - min) * i / (game.getTableSize() - 1);
   }
 
   /** @return Row (zero-based) for given position on the canvas */
   private int getRow(float y) {
-    return Math.round(0.5f + (y - PADDING) / (mRect.bottom - mRect.top - 2*PADDING) * mGame.getTableSize()) - 1;
+    return Math.round(0.5f + (y - PADDING) / (mRect.bottom - mRect.top - 2*PADDING) * game.getTableSize()) - 1;
   }
 
   /** @return Column (zero-based) for given position on the canvas */
   private int getCol(float x) {
-    return Math.round(0.5f + (x - PADDING) / (mRect.right - mRect.left - 2*PADDING) * mGame.getTableSize()) - 1;
+    return Math.round(0.5f + (x - PADDING) / (mRect.right - mRect.left - 2*PADDING) * game.getTableSize()) - 1;
   }
 
   @Override
@@ -129,17 +142,17 @@ public class GameArea extends ViewGroup {
     mRect.right = Math.min(r, b);
     mRect.bottom = Math.min(r, b);
 
-    mCellSize = mRect.width() / mGame.getTableSize();
+    mCellSize = mRect.width() / game.getTableSize();
     mCellSize -= mCellSize % 2;
 
     if (mGrid == null) {
-      mGrid = new float[mGame.getTableSize() * 8];
+      mGrid = new float[game.getTableSize() * 8];
 
       float minX = getX(0);
-      float maxX = getX(mGame.getTableSize() - 1);
+      float maxX = getX(game.getTableSize() - 1);
       float minY = getY(0);
-      float maxY = getY(mGame.getTableSize() - 1);
-      for (int i = 0, at = 0; i < mGame.getTableSize(); ++i) {
+      float maxY = getY(game.getTableSize() - 1);
+      for (int i = 0, at = 0; i < game.getTableSize(); ++i) {
         float x = getX(i);
         float y = getY(i);
         // vertical line
@@ -155,16 +168,19 @@ public class GameArea extends ViewGroup {
       }
     }
 
-    for (Stone stone : mGame.getStones()) {
-      int x = getX(stone.getCol());
-      int y = getY(stone.getRow());
-      StoneView stoneView = stoneViews[stone.getRow()][stone.getCol()];
-      stoneView.layout(
-          x - mCellSize / 2,
-          y - mCellSize / 2,
-          x + mCellSize / 2,
-          y + mCellSize / 2);
-      // stoneView.layout(PADDING, PADDING, 120 - PADDING, 120 - PADDING);
+    for (int i = 0; i < stoneViews.length; i++) {
+      for (int j = 0; j < stoneViews[i].length; j++) {
+        StoneView stoneView = stoneViews[i][j];
+        if (stoneView == null) continue;
+        Stone stone = stoneView.getStone();
+        int x = getX(stone.getCol());
+        int y = getY(stone.getRow());
+        stoneView.layout(
+            x - mCellSize / 2,
+            y - mCellSize / 2,
+            x + mCellSize / 2,
+            y + mCellSize / 2);
+      }
     }
   }
 
@@ -174,11 +190,11 @@ public class GameArea extends ViewGroup {
       case MotionEvent.ACTION_DOWN:
         int row = getRow(event.getY());
         int col = getCol(event.getX());
-        if (row >= 0 && row < mGame.getTableSize() &&
-            col >= 0 && col < mGame.getTableSize()) {
+        if (row >= 0 && row < game.getTableSize() &&
+            col >= 0 && col < game.getTableSize()) {
 
           try {
-            mGame.makeTurnAt(row, col);
+            game.makeTurnAt(row, col);
           } catch (SpaceTakenException e) {
             // Toast.makeText(getContext(), "This space is taken",
             // Toast.LENGTH_SHORT).show();
@@ -220,21 +236,17 @@ public class GameArea extends ViewGroup {
   }
 
   private class GameListener implements com.dots.model.GameListener {
-    @Override
-    public void onStoneAdded(Stone stone) {
-      addStoneView(stone);
-    }
 
     @Override
-    public void onStoneCaptured(Stone stone) {
-      StoneView stoneView = stoneViews[stone.getRow()][stone.getCol()];
-      removeView(stoneView);
+    public void onStateAdvanced(GameState newState) {
+      setGameState(newState);
     }
+
 
     @Override
     public void onGameReset() {
-      for (int row = 0; row < mGame.getTableSize(); row++) {
-        for (int col = 0; col < mGame.getTableSize(); col++) {
+      for (int row = 0; row < game.getTableSize(); row++) {
+        for (int col = 0; col < game.getTableSize(); col++) {
           stoneViews[row][col] = null;
         }
       }

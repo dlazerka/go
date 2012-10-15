@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.dots.model.Game;
+import com.dots.model.GameState;
 import com.google.inject.Inject;
 
 @ContentView(R.layout.activity_game)
@@ -50,6 +51,20 @@ public class GameActivity extends GamesApiActivity {
     mBackButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
+        int turnNo = mGameArea.gameState.getTurnNo();
+        if (turnNo == 0) return;
+        GameState prevState = mGame.getStateAt(turnNo - 1);
+        mGameArea.setGameState(prevState);
+      }
+    });
+    mForwardButton.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        int turnNo = mGameArea.gameState.getTurnNo();
+        GameState lastState = mGame.getLastState();
+        if (turnNo == lastState.getTurnNo()) return;
+        GameState prevState = mGame.getStateAt(turnNo + 1);
+        mGameArea.setGameState(prevState);
       }
     });
 

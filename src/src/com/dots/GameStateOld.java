@@ -24,7 +24,7 @@ import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;
 
-public class GameState implements TurnBasedMatchListener {
+public class GameStateOld implements TurnBasedMatchListener {
   //
   public static final int SIZE = 11;
   private ArrayList<Dot> mRedDots;
@@ -46,7 +46,7 @@ public class GameState implements TurnBasedMatchListener {
   private String mOpponentPlayerId;
   private GameActivity mGameActivity;
 
-  public GameState(GameActivity game, TurnBasedMatchImpl match, String myPlayerId) {
+  public GameStateOld(GameActivity game, TurnBasedMatchImpl match, String myPlayerId) {
     this(game);
     mMatch = match;
     mMyPlayerId = myPlayerId;
@@ -59,7 +59,7 @@ public class GameState implements TurnBasedMatchListener {
     }
   }
 
-  public GameState(GameActivity game) {
+  public GameStateOld(GameActivity game) {
     mGameActivity = game;
     mRedDots = new ArrayList<Dot>();
     mBlueDots = new ArrayList<Dot>();

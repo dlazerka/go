@@ -13,7 +13,7 @@
         a:layout_width="match_parent"
         a:layout_height="match_parent"
         a:alignmentMode="alignBounds"
-        a:background="@drawable/beech"
+        a:background="@drawable/teak"
         a:useDefaultMargins="true" >
     </com.dots.GameArea>
 
@@ -46,7 +46,7 @@
         style="@style/button"
         a:layout_alignParentBottom="true"
         a:layout_alignParentLeft="true"
-        a:layout_width="50dp"
+        a:layout_width="55dp"
         a:text="@string/lt" />
 
     <Button

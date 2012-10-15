@@ -1,7 +1,5 @@
 package com.dots;
 
-import static com.dots.model.StoneColor.BLACK;
-
 import com.dots.model.Game;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -16,6 +14,6 @@ public class RoboModule extends AbstractModule {
   @Provides
   @Singleton
   Game game() {
-    return new Game(19, BLACK);
+    return new Game(19);
   }
 }
