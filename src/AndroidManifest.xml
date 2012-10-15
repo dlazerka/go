@@ -11,6 +11,7 @@
 
     <application
         android:name="name.dlazerka.go.Application"
+        android:label="Go"
         android:theme="@style/AppTheme" >
         <activity android:name=".MainActivity" >
         </activity>
