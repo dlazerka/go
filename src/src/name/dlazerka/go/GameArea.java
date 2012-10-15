@@ -193,20 +193,23 @@ public class GameArea extends ViewGroup {
         int col = getCol(event.getX());
         if (row >= 0 && row < game.getTableSize() &&
             col >= 0 && col < game.getTableSize()) {
-
-          try {
-            game.makeTurnAt(row, col);
-          } catch (SpaceTakenException e) {
-            // Toast.makeText(getContext(), "This space is taken",
-            // Toast.LENGTH_SHORT).show();
-          } catch (NoLibertiesException e) {
-            Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
-          } catch (KoRuleException e) {
-            String msg = "Ko rule violation";
-            if (e.getTurnsAgo() > 2) {
-              msg = "Super ko rule violation " + e.getTurnsAgo() + " turns ago";
+          if (!game.getLastState().equals(gameState)) {
+            setGameState(game.getLastState());
+          } else {
+            try {
+              game.makeTurnAt(row, col);
+            } catch (SpaceTakenException e) {
+              // Toast.makeText(getContext(), "This space is taken",
+              // Toast.LENGTH_SHORT).show();
+            } catch (NoLibertiesException e) {
+              Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
+            } catch (KoRuleException e) {
+              String msg = "Ko rule violation";
+              if (e.getTurnsAgo() > 2) {
+                msg = "Super ko rule violation " + e.getTurnsAgo() + " turns ago";
+              }
+              Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
             }
-            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
           }
         }
 
