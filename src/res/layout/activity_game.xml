@@ -46,7 +46,8 @@
         a:layout_alignParentBottom="true"
         a:layout_alignParentLeft="true"
         a:layout_width="55dp"
-        a:text="@string/lt" />
+        a:text="@string/lt"
+        a:visibility="invisible" />
 
     <Button
         a:id="@+id/forward"
@@ -55,7 +56,8 @@
         a:layout_width="60dp"
         a:layout_marginLeft="40dp"
         a:layout_toRightOf="@+id/back"
-        a:text="@string/gt" />
+        a:text="@string/gt"
+        a:visibility="invisible" />
     
     <Button
         a:id="@+id/pass"

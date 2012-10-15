@@ -11,7 +11,7 @@ public class Game {
 //  GameState state;
   boolean lastPassed ;
 
-  GameListener listener;
+  final List<GameListener> listeners = new ArrayList<GameListener>();
 
   /**
    * Komi multiplied by two (to store to int)
@@ -76,7 +76,8 @@ public class Game {
   void resetGame() {
     history.clear();
     lastPassed = false;
-    listener.onGameReset();
+    for (GameListener listener : listeners)
+      listener.onGameReset();
   }
 
   public void makeTurnAt(int row, int col) throws SpaceTakenException, NoLibertiesException,
@@ -184,14 +185,14 @@ public class Game {
     }
   }
 
-  public void setListener(GameListener listener) {
-    this.listener = listener;
+  public void addListener(GameListener listener) {
+    listeners.add(listener);
   }
 
   /** Notifies listener for differences that occured between two last game states. */
   void notifyListener() {
-    if (listener == null) return;
-    listener.onStateAdvanced(getLastState());
+    for (GameListener listener : listeners)
+      listener.onStateAdvanced(getLastState());
   }
 
   public class SpaceTakenException extends Exception {

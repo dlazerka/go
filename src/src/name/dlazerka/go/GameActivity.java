@@ -1,9 +1,11 @@
 package name.dlazerka.go;
 
 import name.dlazerka.go.model.Game;
+import name.dlazerka.go.model.GameListener;
 import name.dlazerka.go.model.GameState;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
+import roboguice.util.Ln;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -37,11 +39,13 @@ public class GameActivity extends GamesApiActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    mGame.addListener(new GameListener());
 
     Typeface font = Typeface.createFromAsset(getAssets(), "fonts/Shojumaru-Regular.ttf");
     mPassButton.setTypeface(font);
     mBackButton.setTypeface(font);
     mForwardButton.setTypeface(font);
+    mForwardButton.setVisibility(View.INVISIBLE);
     mPassButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -52,8 +56,17 @@ public class GameActivity extends GamesApiActivity {
     mBackButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        int turnNo = mGameArea.gameState.getTurnNo();
-        if (turnNo == 0) return;
+        int turnNo = mGameArea.mGameState.getTurnNo();
+        if (turnNo == 0) {
+          // Shouldn't be possible.
+          Ln.e("Attempt to go back before first turn");
+          return;
+        }
+        mForwardButton.setVisibility(View.VISIBLE);
+        if (turnNo - 1 == 0) {
+          mBackButton.setVisibility(View.INVISIBLE);
+        }
+
         GameState prevState = mGame.getStateAt(turnNo - 1);
         mGameArea.setGameState(prevState);
       }
@@ -61,9 +74,18 @@ public class GameActivity extends GamesApiActivity {
     mForwardButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        int turnNo = mGameArea.gameState.getTurnNo();
+        int turnNo = mGameArea.mGameState.getTurnNo();
         GameState lastState = mGame.getLastState();
-        if (turnNo == lastState.getTurnNo()) return;
+        if (turnNo == lastState.getTurnNo()) {
+          // Shouldn't be possible.
+          Ln.e("Attempt to go forward after last turn");
+          return;
+        }
+        mBackButton.setVisibility(View.VISIBLE);
+        if (turnNo + 1 == lastState.getTurnNo()) {
+          mForwardButton.setVisibility(View.INVISIBLE);
+        }
+
         GameState prevState = mGame.getStateAt(turnNo + 1);
         mGameArea.setGameState(prevState);
       }
@@ -167,6 +189,19 @@ public class GameActivity extends GamesApiActivity {
         return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  private class GameListener implements name.dlazerka.go.model.GameListener {
+    @Override
+    public void onStateAdvanced(GameState newState) {
+      mBackButton.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onGameReset() {
+      mBackButton.setVisibility(View.VISIBLE);
+      mForwardButton.setVisibility(View.INVISIBLE);
+    }
   }
 
 }
