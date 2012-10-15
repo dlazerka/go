@@ -10,6 +10,7 @@ import name.dlazerka.go.model.Game.SpaceTakenException;
 import name.dlazerka.go.model.GameState;
 import name.dlazerka.go.model.Stone;
 import roboguice.RoboGuice;
+import roboguice.inject.InjectView;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -23,17 +24,20 @@ import android.widget.Toast;
 import com.google.inject.Inject;
 
 public class GameArea extends ViewGroup {
-  final static int PADDING = 3;
+  final static int PADDING = 30;
 
   /** For painting grid. */
   final Paint mPaintGrid = new Paint();
   /** Layout area. Mutable. */
-  final Rect mRect = new Rect(0, 0, 0, 0);
+  final Rect mRect = new Rect();
   /** Row-major. */
   final StoneView[][] stoneViews;
 
   @Inject
   Game mGame;
+
+  @InjectView(R.id.gameAreaGrid)
+  GameAreaGrid mGameAreaGrid;
 
   GameState mGameState;
 
@@ -104,9 +108,9 @@ public class GameArea extends ViewGroup {
 
   /** @return Position on canvas for given row (zero-based) */
   private int getY(int col) {
-    int l = mRect.top + mCellSize / 2 + PADDING;
-    int r = mRect.bottom - mCellSize / 2 - PADDING;
-    return getCoord(col, l, r);
+    int t = mRect.top + mCellSize / 2 + PADDING;
+    int b = mRect.bottom - mCellSize / 2 - PADDING;
+    return getCoord(col, t, b);
   }
 
   private int getCoord(int i, int min, int max) {
@@ -128,9 +132,8 @@ public class GameArea extends ViewGroup {
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
-
     // Grid
-    canvas.drawLines(mGrid, mPaintGrid);
+//    canvas.drawLines(mGrid, mPaintGrid);
   }
 
   @Override
@@ -139,6 +142,8 @@ public class GameArea extends ViewGroup {
     mRect.top = t;
     mRect.right = Math.min(r, b);
     mRect.bottom = Math.min(r, b);
+
+    mGameAreaGrid.layout(l + PADDING, t + PADDING, r -  PADDING, b - PADDING);
 
     mCellSize = mRect.width() / mGame.getTableSize();
     mCellSize -= mCellSize % 2;
@@ -254,58 +259,4 @@ public class GameArea extends ViewGroup {
       removeAllViews();
     }
   }
-
-  // @Override
-  // protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-  // super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-  //
-  // if (getMeasuredWidth() < getMeasuredHeight()) {
-  // getLayoutParams().height = getMeasuredWidth();
-  // } else {
-  // getLayoutParams().width = getMeasuredHeight();
-  // }
-  // }
-  //
-  // private void drawDotsForColor(Dot.Colour color, Canvas canvas) {
-  // int savedColor = mPaint.getColor();
-  // try {
-  // // Color
-  // mPaint.setColor(Color.BLACK);
-  // for (Dot d : mGameState.getDots(color)) {
-  // float x0 = cell2Coord(d.x);
-  // float y0 = cell2Coord(d.y);
-  //
-  // canvas.drawCircle(x0, y0, 10, mPaint);
-  // for (int i = 0; i < (Dot.NUM_DIRECTIONS >> 1); ++i) {
-  // if (d.neignbours[i]) {
-  // float x1 = cell2Coord(d.getNx(i));
-  // float y1 = cell2Coord(d.getNy(i));
-  // canvas.drawLine(x0, y0, x1, y1, mPaint);
-  // }
-  // }
-  // }
-  // //
-  // } finally {
-  // mPaint.setStrokeWidth(1);
-  // mPaint.setColor(savedColor);
-  // }
-  // }
-  //
-  // private void drawDots(Canvas canvas) {
-  // drawDotsForColor(Dot.Colour.CL_BLUE, canvas);
-  // drawDotsForColor(Dot.Colour.CL_RED, canvas);
-  // }
-  //
-  // public void erase() {
-  // mGameState.reset();
-  // invalidate();
-  // }
-  //
-  // private int roundCoordinate(float t) {
-  // return (int) ((t - PADDING) / STONE_SIZE + 0.5);
-  // }
-  //
-  // private int cell2Coord(int t) {
-  // return PADDING + t * STONE_SIZE;
-  // }
 }

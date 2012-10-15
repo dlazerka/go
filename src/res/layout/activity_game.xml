@@ -9,19 +9,25 @@
     <!-- layout_height will be rewritten -->
 
     <name.dlazerka.go.GameArea
-        a:id="@+id/desk"
+        a:id="@+id/gameArea"
         a:layout_width="match_parent"
         a:layout_height="match_parent"
         a:alignmentMode="alignBounds"
         a:background="@drawable/maple1000x1000"
-        a:useDefaultMargins="true" />
+        a:useDefaultMargins="true" >
+
+        <name.dlazerka.go.GameAreaGrid
+            a:id="@+id/gameAreaGrid"
+            a:layout_width="match_parent"
+            a:layout_height="match_parent" />
+    </name.dlazerka.go.GameArea>
 
     <TextView
         a:id="@+id/scoreBlue"
         a:layout_width="wrap_content"
         a:layout_height="wrap_content"
         a:layout_alignParentLeft="true"
-        a:layout_below="@+id/desk"
+        a:layout_below="@+id/gameArea"
         a:paddingLeft="@dimen/padding_large"
         a:text="@string/defaultScore"
         a:textColor="#00f"
@@ -33,7 +39,7 @@
         a:layout_width="wrap_content"
         a:layout_height="wrap_content"
         a:layout_alignParentRight="true"
-        a:layout_below="@+id/desk"
+        a:layout_below="@+id/gameArea"
         a:paddingRight="@dimen/padding_large"
         a:text="@string/defaultScore"
         a:textColor="#f00"
@@ -43,22 +49,22 @@
     <Button
         a:id="@+id/back"
         style="@style/button"
+        a:layout_width="55dp"
         a:layout_alignParentBottom="true"
         a:layout_alignParentLeft="true"
-        a:layout_width="55dp"
         a:text="@string/lt"
         a:visibility="invisible" />
 
     <Button
         a:id="@+id/forward"
         style="@style/button"
-        a:layout_alignParentBottom="true"
         a:layout_width="60dp"
+        a:layout_alignParentBottom="true"
         a:layout_marginLeft="40dp"
         a:layout_toRightOf="@+id/back"
         a:text="@string/gt"
         a:visibility="invisible" />
-    
+
     <Button
         a:id="@+id/pass"
         style="@style/button"

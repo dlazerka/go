@@ -8,7 +8,6 @@ import roboguice.inject.InjectView;
 import roboguice.util.Ln;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,7 +24,7 @@ public class GameActivity extends GamesApiActivity {
   // private TurnBasedMatchImpl mMatch;
   private Toast currentToast;
 
-  @InjectView(R.id.desk)
+  @InjectView(R.id.gameArea)
   private GameArea mGameArea;
   @InjectView(R.id.pass)
   Button mPassButton;
@@ -180,16 +179,16 @@ public class GameActivity extends GamesApiActivity {
   protected GamesApiListener newGamesApiListener() {
     return new GamesApiListener();// Not interested.
   }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case android.R.id.home:
-        NavUtils.navigateUpFromSameTask(this);
-        return true;
-    }
-    return super.onOptionsItemSelected(item);
-  }
+//
+//  @Override
+//  public boolean onOptionsItemSelected(MenuItem item) {
+//    switch (item.getItemId()) {
+//      case android.R.id.home:
+//        NavUtils.navigateUpFromSameTask(this);
+//        return true;
+//    }
+//    return super.onOptionsItemSelected(item);
+//  }
 
   private class GameListener implements name.dlazerka.go.model.GameListener {
     @Override
