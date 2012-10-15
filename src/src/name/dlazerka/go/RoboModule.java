@@ -1,6 +1,7 @@
-package com.dots;
+package name.dlazerka.go;
 
-import com.dots.model.Game;
+import name.dlazerka.go.model.Game;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;

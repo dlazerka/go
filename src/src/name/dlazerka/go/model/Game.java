@@ -1,10 +1,7 @@
-package com.dots.model;
+package name.dlazerka.go.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import roboguice.util.Ln;
 
@@ -64,18 +61,6 @@ public class Game {
   public int getCurrentScore() {
     return 0;
   }
-
-  /** Bulk fill the table. No checks are made. */
-//  void add(Collection<Stone> newStones) {
-//    add(newStones.toArray(new Stone[newStones.size()]));
-//  }
-
-//  /** May accept invalid row and col. */
-//  public Stone stoneAt(int row, int col) {
-//    if (row < 0 || col < 0 || row > tableSize - 1 || col > tableSize - 1)
-//      return null;
-//    return stonesIndex[row][col];
-//  }
 
   public void passTurn() {
     GameState newState = getLastState().nextTurnBuilder().build();

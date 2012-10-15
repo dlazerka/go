@@ -2,7 +2,7 @@
 <resources>
 
     <string-array name="roboguice_modules">
-        <item>com.dots.RoboModule</item>
+        <item>name.dlazerka.go.RoboModule</item>
     </string-array>
 
 </resources>

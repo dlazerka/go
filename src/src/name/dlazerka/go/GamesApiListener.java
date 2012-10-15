@@ -1,6 +1,6 @@
-package com.dots;
+package name.dlazerka.go;
 
-import static com.dots.Util.TAG;
+import static name.dlazerka.go.Util.TAG;
 import android.util.Log;
 
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;

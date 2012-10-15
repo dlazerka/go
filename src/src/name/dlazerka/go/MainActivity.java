@@ -1,6 +1,6 @@
-package com.dots;
+package name.dlazerka.go;
 
-import static com.dots.Util.TAG;
+import static name.dlazerka.go.Util.TAG;
 
 import java.util.ArrayList;
 
@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import name.dlazerka.go.R;
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
 import com.google.android.gms.games.data.match.Match;

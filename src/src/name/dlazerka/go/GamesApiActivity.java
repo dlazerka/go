@@ -1,8 +1,10 @@
-package com.dots;
+package name.dlazerka.go;
 
-import static com.dots.Util.TAG;
+import static name.dlazerka.go.Util.TAG;
 
 import java.util.ArrayList;
+
+import name.dlazerka.go.GamesApiAware.NotYetConnectedException;
 
 import roboguice.activity.RoboActivity;
 
@@ -12,7 +14,7 @@ import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.dots.GamesApiAware.NotYetConnectedException;
+import name.dlazerka.go.R;
 import com.google.android.gms.common.ConnectionStatus;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.games.GamesClient;

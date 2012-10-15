@@ -1,4 +1,4 @@
-package com.dots.model;
+package name.dlazerka.go.model;
 
 public class Stone {
   final int row;

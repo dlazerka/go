@@ -1,4 +1,4 @@
-package com.dots.model;
+package name.dlazerka.go.model;
 
 import java.util.Collections;
 import java.util.HashSet;

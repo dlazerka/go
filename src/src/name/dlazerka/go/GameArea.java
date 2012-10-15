@@ -1,8 +1,15 @@
-package com.dots;
+package name.dlazerka.go;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import name.dlazerka.go.model.Game;
+import name.dlazerka.go.model.GameState;
+import name.dlazerka.go.model.Stone;
+import name.dlazerka.go.model.Game.KoRuleException;
+import name.dlazerka.go.model.Game.NoLibertiesException;
+import name.dlazerka.go.model.Game.SpaceTakenException;
 
 import roboguice.RoboGuice;
 import android.content.Context;
@@ -16,12 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.dots.model.Game;
-import com.dots.model.Game.KoRuleException;
-import com.dots.model.Game.NoLibertiesException;
-import com.dots.model.Game.SpaceTakenException;
-import com.dots.model.GameState;
-import com.dots.model.Stone;
 import com.google.inject.Inject;
 
 public class GameArea extends ViewGroup {
@@ -50,7 +51,7 @@ public class GameArea extends ViewGroup {
     stoneViews = new StoneView[game.getTableSize()][game.getTableSize()];
     setGameState(game.getLastState());
 
-    mPaintGrid.setColor(Color.BLACK);
+    mPaintGrid.setColor(Color.DKGRAY);
     mPaintGrid.setStrokeWidth(2f);
     mPaintGrid.setStrokeCap(Paint.Cap.ROUND);
 
@@ -235,7 +236,7 @@ public class GameArea extends ViewGroup {
     return super.onTouchEvent(event);
   }
 
-  private class GameListener implements com.dots.model.GameListener {
+  private class GameListener implements name.dlazerka.go.model.GameListener {
 
     @Override
     public void onStateAdvanced(GameState newState) {

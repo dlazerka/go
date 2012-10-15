@@ -1,12 +1,16 @@
-package com.dots.model;
+package name.dlazerka.go.model;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import name.dlazerka.go.model.Game;
+import name.dlazerka.go.model.Stone;
+import name.dlazerka.go.model.StoneColor;
+import name.dlazerka.go.model.Game.KoRuleException;
+
 import org.junit.Test;
 
-import com.dots.model.Game.KoRuleException;
 
 public class GameTest {
   @Test

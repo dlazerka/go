@@ -1,5 +1,7 @@
-package com.dots;
+package name.dlazerka.go;
 
+import name.dlazerka.go.model.Game;
+import name.dlazerka.go.model.GameState;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
 import android.graphics.Typeface;
@@ -11,8 +13,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.dots.model.Game;
-import com.dots.model.GameState;
+import name.dlazerka.go.R;
 import com.google.inject.Inject;
 
 @ContentView(R.layout.activity_game)

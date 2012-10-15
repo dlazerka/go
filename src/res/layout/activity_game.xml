@@ -8,14 +8,13 @@
 
     <!-- layout_height will be rewritten -->
 
-    <com.dots.GameArea
+    <name.dlazerka.go.GameArea
         a:id="@+id/desk"
         a:layout_width="match_parent"
         a:layout_height="match_parent"
         a:alignmentMode="alignBounds"
-        a:background="@drawable/teak"
-        a:useDefaultMargins="true" >
-    </com.dots.GameArea>
+        a:background="@drawable/maple1000x1000"
+        a:useDefaultMargins="true" />
 
     <TextView
         a:id="@+id/scoreBlue"

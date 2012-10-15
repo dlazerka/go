@@ -1,7 +1,7 @@
-package com.dots;
+package name.dlazerka.go;
 
-import static com.dots.model.StoneColor.*;
-import com.dots.model.Stone;
+import static name.dlazerka.go.model.StoneColor.*;
+import name.dlazerka.go.model.Stone;
 
 import android.content.Context;
 import android.graphics.Canvas;

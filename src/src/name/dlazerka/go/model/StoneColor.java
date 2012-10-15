@@ -1,4 +1,4 @@
-package com.dots.model;
+package name.dlazerka.go.model;
 
 public enum StoneColor {
     BLACK, WHITE;

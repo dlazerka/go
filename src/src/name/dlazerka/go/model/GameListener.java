@@ -1,4 +1,4 @@
-package com.dots.model;
+package name.dlazerka.go.model;
 
 public interface GameListener {
   void onStateAdvanced(GameState newState);

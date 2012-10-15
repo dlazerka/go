@@ -1,6 +1,6 @@
-package com.dots;
+package name.dlazerka.go;
 
-import static com.dots.Util.TAG;
+import static name.dlazerka.go.Util.TAG;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -12,14 +12,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import name.dlazerka.go.Dot.Colour;
+import name.dlazerka.go.GamesApiAware.NotYetConnectedException;
+
 import android.app.Activity;
 import android.graphics.Color;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 
-import com.dots.Dot.Colour;
-import com.dots.GamesApiAware.NotYetConnectedException;
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.GamesClient.TurnBasedMatchListener;
 import com.google.android.gms.games.data.match.TurnBasedMatchImpl;

@@ -1,4 +1,4 @@
-package com.dots;
+package name.dlazerka.go;
 
 import com.google.android.gms.games.GamesClient;
 
