@@ -24,7 +24,7 @@ import android.widget.Toast;
 import com.google.inject.Inject;
 
 public class GameArea extends ViewGroup {
-  final static int PADDING = 30;
+  final static int PADDING = 3;
 
   /** For painting grid. */
   final Paint mPaintGrid = new Paint();
@@ -35,9 +35,6 @@ public class GameArea extends ViewGroup {
 
   @Inject
   Game mGame;
-
-  @InjectView(R.id.gameAreaGrid)
-  GameAreaGrid mGameAreaGrid;
 
   GameState mGameState;
 
@@ -133,7 +130,7 @@ public class GameArea extends ViewGroup {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     // Grid
-//    canvas.drawLines(mGrid, mPaintGrid);
+    canvas.drawLines(mGrid, mPaintGrid);
   }
 
   @Override
@@ -143,9 +140,7 @@ public class GameArea extends ViewGroup {
     mRect.right = Math.min(r, b);
     mRect.bottom = Math.min(r, b);
 
-    mGameAreaGrid.layout(l + PADDING, t + PADDING, r -  PADDING, b - PADDING);
-
-    mCellSize = mRect.width() / mGame.getTableSize();
+    mCellSize = (mRect.width() - 2*PADDING) / mGame.getTableSize();
     mCellSize -= mCellSize % 2;
 
     if (mGrid == null) {
