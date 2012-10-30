@@ -16,10 +16,6 @@
         a:background="@drawable/maple1000x1000"
         a:useDefaultMargins="true" >
 
-        <name.dlazerka.go.GameAreaGrid
-            a:id="@+id/gameAreaGrid"
-            a:layout_width="match_parent"
-            a:layout_height="match_parent" />
     </name.dlazerka.go.GameArea>
 
     <TextView
