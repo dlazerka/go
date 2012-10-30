@@ -35,10 +35,9 @@ public class Game {
   public Game(int tableSize) {
     this.tableSize = tableSize;
 
-    lastPassed = false;
     seenIndex = new boolean[tableSize][tableSize];
     history = new ArrayList<GameState>(tableSize * tableSize / 2);
-    history.add(new GameState());
+    resetGame();
   }
 
   public int getTableSize() {
@@ -75,9 +74,8 @@ public class Game {
 
   void resetGame() {
     history.clear();
+    history.add(new GameState());
     lastPassed = false;
-    for (GameListener listener : listeners)
-      listener.onGameReset();
   }
 
   public void makeTurnAt(int row, int col) throws SpaceTakenException, NoLibertiesException,
