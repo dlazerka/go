@@ -14,20 +14,18 @@ class StoneView extends Drawable {
   final Paint mFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   int mSize;
 
-  StoneView(Stone stone) {
+  StoneView(Stone stone, int size) {
     this.stone = stone;
+    setSize(size);
   }
 
   public Stone getStone() {
     return stone;
   }
 
-  @Override
-  public void setBounds(int left, int top, int right, int bottom) {
-    super.setBounds(left, top, right, bottom);
-    
-    this.mSize = right - left;
-    Shader shader = stone.getColor() == WHITE ? getWhite() : getBlack();
+  public void setSize(int size) {
+    this.mSize = size;
+    RadialGradient shader = stone.getColor() == WHITE ? getWhite() : getBlack();
     mFillPaint.setShader(shader);
   }
 

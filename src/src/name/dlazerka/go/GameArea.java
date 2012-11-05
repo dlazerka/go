@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.google.inject.Inject;
 
 public class GameArea extends ViewGroup {
+  /** Minimal distance between stone edge and view edge. */
   final static int PADDING = 3;
 
   /** For painting grid. */
@@ -76,16 +77,8 @@ public class GameArea extends ViewGroup {
   }
 
   private void addStoneView(Stone stone) {
-    StoneView stoneView = new StoneView(stone);
+    StoneView stoneView = new StoneView(stone, mCellSize);
     stoneViews[stone.getRow()][stone.getCol()] = stoneView;
-
-    int x = getX(stone.getCol());
-    int y = getY(stone.getRow());
-    stoneView.setBounds(
-        x - mCellSize / 2,
-        y - mCellSize / 2,
-        x + mCellSize / 2,
-        y + mCellSize / 2);
     invalidate();
   }
 
@@ -138,7 +131,7 @@ public class GameArea extends ViewGroup {
     super.onDraw(canvas);
     // Grid
     canvas.drawLines(mGrid, mPaintGrid);
-    
+
     for (int i = 0; i < stoneViews.length; i++) {
       for (int j = 0; j < stoneViews[i].length; j++) {
         StoneView stoneView = stoneViews[i][j];
@@ -155,13 +148,13 @@ public class GameArea extends ViewGroup {
 
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    if (!changed) return;
     mRect.left = l;
     mRect.top = t;
     mRect.right = Math.min(r, b);
     mRect.bottom = Math.min(r, b);
 
     mCellSize = (mRect.width() - 2*PADDING) / mGame.getTableSize();
-//    mCellSize -= mCellSize % 2;
 
     if (mGrid == null) {
       mGrid = new float[mGame.getTableSize() * 8];
@@ -196,23 +189,19 @@ public class GameArea extends ViewGroup {
         int col = getCol(event.getX());
         if (row >= 0 && row < mGame.getTableSize() &&
             col >= 0 && col < mGame.getTableSize()) {
-          if (!mGame.getLastState().equals(mGameState)) {
-            setGameState(mGame.getLastState());
-          } else {
-            try {
-              mGame.makeTurnAt(row, col);
-            } catch (SpaceTakenException e) {
-              // Toast.makeText(getContext(), "This space is taken",
-              // Toast.LENGTH_SHORT).show();
-            } catch (NoLibertiesException e) {
-              Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
-            } catch (KoRuleException e) {
-              String msg = "Ko rule violation";
-              if (e.getTurnsAgo() > 2) {
-                msg = "Super ko rule violation " + e.getTurnsAgo() + " turns ago";
-              }
-              Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+          try {
+            mGame.makeTurnAt(row, col);
+          } catch (SpaceTakenException e) {
+            // Toast.makeText(getContext(), "This space is taken",
+            // Toast.LENGTH_SHORT).show();
+          } catch (NoLibertiesException e) {
+            Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
+          } catch (KoRuleException e) {
+            String msg = "Ko rule violation";
+            if (e.getTurnsAgo() > 2) {
+              msg = "Super ko rule violation " + e.getTurnsAgo() + " turns ago";
             }
+            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
           }
         }
 
@@ -248,7 +237,6 @@ public class GameArea extends ViewGroup {
     public void onStateAdvanced(GameState newState) {
       setGameState(newState);
     }
-
 
     @Override
     public void onGameReset() {

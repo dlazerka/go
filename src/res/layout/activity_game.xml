@@ -45,21 +45,25 @@
     <Button
         a:id="@+id/back"
         style="@style/button"
-        a:layout_width="55dp"
+        a:layout_width="50dp"
         a:layout_alignParentBottom="true"
         a:layout_alignParentLeft="true"
-        a:text="@string/lt"
-        a:visibility="invisible" />
+        a:text="@string/lt" />
+
+    <TextView
+        a:id="@+id/turnNo"
+        style="@style/turnNo"
+        a:layout_toRightOf="@+id/back"
+        a:layout_alignParentBottom="true"
+        a:gravity="center_horizontal" />
 
     <Button
         a:id="@+id/forward"
         style="@style/button"
-        a:layout_width="60dp"
+        a:layout_width="50dp"
         a:layout_alignParentBottom="true"
-        a:layout_marginLeft="40dp"
-        a:layout_toRightOf="@+id/back"
-        a:text="@string/gt"
-        a:visibility="invisible" />
+        a:layout_toRightOf="@+id/turnNo"
+        a:text="@string/gt" />
 
     <Button
         a:id="@+id/pass"

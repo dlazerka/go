@@ -10,4 +10,13 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
+    <style name="turnNo">
+        <item name="android:textColor">#000</item>
+        <item name="android:paddingBottom">5dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:textSize">37dp</item>
+        <item name="android:layout_width">88dp</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
 </resources>

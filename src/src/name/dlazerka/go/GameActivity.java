@@ -1,28 +1,26 @@
 package name.dlazerka.go;
 
 import name.dlazerka.go.model.Game;
-import name.dlazerka.go.model.GameListener;
 import name.dlazerka.go.model.GameState;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
 import roboguice.util.Ln;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import name.dlazerka.go.R;
 import com.google.inject.Inject;
 
 @ContentView(R.layout.activity_game)
 public class GameActivity extends GamesApiActivity {
-  private static final String CONNECTING_MESSAGE = "Connecting to Games API";
+  // private static final String CONNECTING_MESSAGE = "Connecting to Games API";
   // private GameState mGameState;
   // private TurnBasedMatchImpl mMatch;
-  private Toast currentToast;
+  // private Toast currentToast;
 
   @InjectView(R.id.gameArea)
   private GameArea mGameArea;
@@ -32,6 +30,8 @@ public class GameActivity extends GamesApiActivity {
   Button mBackButton;
   @InjectView(R.id.forward)
   Button mForwardButton;
+  @InjectView(R.id.turnNo)
+  TextView mTurnNo;
   @Inject
   Game mGame;
 
@@ -43,13 +43,14 @@ public class GameActivity extends GamesApiActivity {
     Typeface font = Typeface.createFromAsset(getAssets(), "fonts/Shojumaru-Regular.ttf");
     mPassButton.setTypeface(font);
     mBackButton.setTypeface(font);
+    mTurnNo.setTypeface(font);
     mForwardButton.setTypeface(font);
-    mForwardButton.setVisibility(View.INVISIBLE);
+
+    updateBackForward();
     mPassButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
         mGame.passTurn();
-        Toast.makeText(GameActivity.this, "Passed", Toast.LENGTH_SHORT).show();
       }
     });
     mBackButton.setOnClickListener(new OnClickListener() {
@@ -57,17 +58,14 @@ public class GameActivity extends GamesApiActivity {
       public void onClick(View v) {
         int turnNo = mGameArea.mGameState.getTurnNo();
         if (turnNo == 0) {
-          // Shouldn't be possible.
+          // Shouldn't be possible, because button is gone.
           Ln.e("Attempt to go back before first turn");
           return;
         }
-        mForwardButton.setVisibility(View.VISIBLE);
-        if (turnNo - 1 == 0) {
-          mBackButton.setVisibility(View.INVISIBLE);
-        }
-
         GameState prevState = mGame.getStateAt(turnNo - 1);
         mGameArea.setGameState(prevState);
+
+        updateBackForward();
       }
     });
     mForwardButton.setOnClickListener(new OnClickListener() {
@@ -76,17 +74,25 @@ public class GameActivity extends GamesApiActivity {
         int turnNo = mGameArea.mGameState.getTurnNo();
         GameState lastState = mGame.getLastState();
         if (turnNo == lastState.getTurnNo()) {
-          // Shouldn't be possible.
+          // Shouldn't be possible, because button is gone.
           Ln.e("Attempt to go forward after last turn");
           return;
         }
-        mBackButton.setVisibility(View.VISIBLE);
-        if (turnNo + 1 == lastState.getTurnNo()) {
-          mForwardButton.setVisibility(View.INVISIBLE);
-        }
-
         GameState prevState = mGame.getStateAt(turnNo + 1);
         mGameArea.setGameState(prevState);
+
+        updateBackForward();
+      }
+    });
+    mGameArea.setOnTouchListener(new View.OnTouchListener() {
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        if (!mGame.getLastState().equals(mGameArea.mGameState)) {
+          mGameArea.setGameState(mGame.getLastState());
+          updateBackForward();
+          return true;
+        }
+        return false;
       }
     });
 
@@ -128,6 +134,21 @@ public class GameActivity extends GamesApiActivity {
     // });
   }
 
+  private void updateBackForward() {
+    if (mGameArea.mGameState.equals(mGame.getLastState())) {
+      mForwardButton.setVisibility(View.INVISIBLE);
+    } else {
+      mForwardButton.setVisibility(View.VISIBLE);
+    }
+    if (mGameArea.mGameState.equals(mGame.getStateAt(0))) {
+      mBackButton.setVisibility(View.INVISIBLE);
+    } else {
+      mBackButton.setVisibility(View.VISIBLE);
+    }
+
+    mTurnNo.setText(mGameArea.mGameState.getTurnNo() + "");
+  }
+
   // private String getOpponentPlayerId() throws NotYetConnectedException {
   // String currentPlayerId = getConnectedGamesClient().getCurrentPlayerId();
   // ArrayList<String> playerIds = mMatch.getPlayerIds();
@@ -165,41 +186,31 @@ public class GameActivity extends GamesApiActivity {
   // });
   // }
 
-  void showToastConnecting() {
-    if (currentToast == null) {
-      currentToast = Toast.makeText(GameActivity.this, CONNECTING_MESSAGE, Toast.LENGTH_SHORT);
-    }
-    // To not schedule many toasts.
-    if (!currentToast.getView().isShown()) {
-      currentToast.show();
-    }
-  }
+  // void showToastConnecting() {
+  // if (currentToast == null) {
+  // currentToast = Toast.makeText(GameActivity.this, CONNECTING_MESSAGE,
+  // Toast.LENGTH_SHORT);
+  // }
+  // // To not schedule many toasts.
+  // if (!currentToast.getView().isShown()) {
+  // currentToast.show();
+  // }
+  // }
 
   @Override
   protected GamesApiListener newGamesApiListener() {
     return new GamesApiListener();// Not interested.
   }
-//
-//  @Override
-//  public boolean onOptionsItemSelected(MenuItem item) {
-//    switch (item.getItemId()) {
-//      case android.R.id.home:
-//        NavUtils.navigateUpFromSameTask(this);
-//        return true;
-//    }
-//    return super.onOptionsItemSelected(item);
-//  }
 
   private class GameListener implements name.dlazerka.go.model.GameListener {
     @Override
     public void onStateAdvanced(GameState newState) {
-      mBackButton.setVisibility(View.VISIBLE);
+      updateBackForward();
     }
 
     @Override
     public void onGameReset() {
-      mBackButton.setVisibility(View.VISIBLE);
-      mForwardButton.setVisibility(View.INVISIBLE);
+      updateBackForward();
     }
   }
 
