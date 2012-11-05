@@ -131,7 +131,6 @@ public class GameArea extends ViewGroup {
     super.onDraw(canvas);
     // Grid
     canvas.drawLines(mGrid, mPaintGrid);
-
     for (int i = 0; i < stoneViews.length; i++) {
       for (int j = 0; j < stoneViews[i].length; j++) {
         StoneView stoneView = stoneViews[i][j];
