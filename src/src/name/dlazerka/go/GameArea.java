@@ -10,7 +10,6 @@ import name.dlazerka.go.model.Game.SpaceTakenException;
 import name.dlazerka.go.model.GameState;
 import name.dlazerka.go.model.Stone;
 import roboguice.RoboGuice;
-import roboguice.inject.InjectView;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -77,14 +76,22 @@ public class GameArea extends ViewGroup {
   }
 
   private void addStoneView(Stone stone) {
-    StoneView view = new StoneView(stone, getContext());
-    stoneViews[stone.getRow()][stone.getCol()] = view;
-    addView(view);
+    StoneView stoneView = new StoneView(stone);
+    stoneViews[stone.getRow()][stone.getCol()] = stoneView;
+
+    int x = getX(stone.getCol());
+    int y = getY(stone.getRow());
+    stoneView.setBounds(
+        x - mCellSize / 2,
+        y - mCellSize / 2,
+        x + mCellSize / 2,
+        y + mCellSize / 2);
+    invalidate();
   }
 
   private void removeStoneView(Stone stone) {
-    StoneView stoneView = stoneViews[stone.getRow()][stone.getCol()];
-    removeView(stoneView);
+    stoneViews[stone.getRow()][stone.getCol()] = null;
+    invalidate();
   }
 
   void removeAllStoneViews() {
@@ -131,6 +138,19 @@ public class GameArea extends ViewGroup {
     super.onDraw(canvas);
     // Grid
     canvas.drawLines(mGrid, mPaintGrid);
+    
+    for (int i = 0; i < stoneViews.length; i++) {
+      for (int j = 0; j < stoneViews[i].length; j++) {
+        StoneView stoneView = stoneViews[i][j];
+        if (stoneView == null) continue;
+        int x = getX(stoneView.stone.getCol());
+        int y = getY(stoneView.stone.getRow());
+        canvas.save();
+        canvas.translate(x - mCellSize / 2, y - mCellSize / 2);
+        stoneView.draw(canvas);
+        canvas.restore();
+      }
+    }
   }
 
   @Override
@@ -141,7 +161,7 @@ public class GameArea extends ViewGroup {
     mRect.bottom = Math.min(r, b);
 
     mCellSize = (mRect.width() - 2*PADDING) / mGame.getTableSize();
-    mCellSize -= mCellSize % 2;
+//    mCellSize -= mCellSize % 2;
 
     if (mGrid == null) {
       mGrid = new float[mGame.getTableSize() * 8];
@@ -166,20 +186,6 @@ public class GameArea extends ViewGroup {
       }
     }
 
-    for (int i = 0; i < stoneViews.length; i++) {
-      for (int j = 0; j < stoneViews[i].length; j++) {
-        StoneView stoneView = stoneViews[i][j];
-        if (stoneView == null) continue;
-        Stone stone = stoneView.getStone();
-        int x = getX(stone.getCol());
-        int y = getY(stone.getRow());
-        stoneView.layout(
-            x - mCellSize / 2,
-            y - mCellSize / 2,
-            x + mCellSize / 2,
-            y + mCellSize / 2);
-      }
-    }
   }
 
   @Override

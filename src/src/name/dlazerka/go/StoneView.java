@@ -1,22 +1,20 @@
 package name.dlazerka.go;
 
-import static name.dlazerka.go.model.StoneColor.*;
+import static name.dlazerka.go.model.StoneColor.WHITE;
 import name.dlazerka.go.model.Stone;
-
-import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
-import android.view.View;
+import android.graphics.drawable.Drawable;
 
-class StoneView extends View {
+class StoneView extends Drawable {
   final Stone stone;
   final Paint mFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   int mSize;
 
-  StoneView(Stone stone, Context context) {
-    super(context);
+  StoneView(Stone stone) {
     this.stone = stone;
   }
 
@@ -25,16 +23,16 @@ class StoneView extends View {
   }
 
   @Override
-  protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-    super.onLayout(changed, left, top, right, bottom);
-
+  public void setBounds(int left, int top, int right, int bottom) {
+    super.setBounds(left, top, right, bottom);
+    
     this.mSize = right - left;
     Shader shader = stone.getColor() == WHITE ? getWhite() : getBlack();
     mFillPaint.setShader(shader);
   }
 
   @Override
-  protected void onDraw(Canvas canvas) {
+  public void draw(Canvas canvas) {
     canvas.drawCircle(mSize / 2, mSize / 2, mSize / 2, mFillPaint);
   }
 
@@ -52,5 +50,18 @@ class StoneView extends View {
         new int[] { 0xFFFFFFFF, 0xFFDDDDDD, 0xFF777777 },
         new float[] { .7f, .9f, 1.0f },
         Shader.TileMode.CLAMP);
+  }
+
+  @Override
+  public void setAlpha(int alpha) {
+  }
+
+  @Override
+  public void setColorFilter(ColorFilter cf) {
+  }
+
+  @Override
+  public int getOpacity() {
+    return 0;
   }
 }
