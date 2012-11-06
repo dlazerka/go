@@ -4,10 +4,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import name.dlazerka.go.model.Game;
-import name.dlazerka.go.model.Game.KoRuleException;
-import name.dlazerka.go.model.Game.NoLibertiesException;
-import name.dlazerka.go.model.Game.SpaceTakenException;
 import name.dlazerka.go.model.GameState;
+import name.dlazerka.go.model.KoRuleException;
+import name.dlazerka.go.model.NoLibertiesException;
+import name.dlazerka.go.model.SpaceTakenException;
 import name.dlazerka.go.model.Stone;
 import roboguice.RoboGuice;
 import android.content.Context;

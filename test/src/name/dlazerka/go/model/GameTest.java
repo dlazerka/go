@@ -7,16 +7,17 @@ import static org.junit.Assert.fail;
 import name.dlazerka.go.model.Game;
 import name.dlazerka.go.model.Stone;
 import name.dlazerka.go.model.StoneColor;
-import name.dlazerka.go.model.Game.KoRuleException;
 
 import org.junit.Test;
 
 
 public class GameTest {
+  /** Simplest Ko example. */
   @Test
   public void testKo() throws Exception {
     Game game = new Game(19);
 
+    // Blacks on left.
     game.makeTurnAt(0, 1);
     game.makeTurnAt(0, 2);
     game.makeTurnAt(1, 0);

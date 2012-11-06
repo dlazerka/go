@@ -1,6 +1,5 @@
 package name.dlazerka.go.model;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,20 +8,32 @@ import java.util.Set;
  */
 public class GameState {
   /** Mutable for current turn, but must not be modified later. */
-  private Set<Stone> stones = new HashSet<Stone>();
-  private final StoneColor whoseTurn;
+  final Set<Stone> stones;
+  final StoneColor whoseTurn;
   /** 0-based */
-  private final int turnNo;
+  final int turnNo;
+  final int blacksCaptured;
+  final int whitesCaptured;
 
   GameState() {
+    stones = new HashSet<Stone>();
     this.whoseTurn = StoneColor.BLACK;
     this.turnNo = 0;
+    this.blacksCaptured = 0;
+    this.whitesCaptured = 0;
   }
 
-  private GameState(GameState prev) {
-    this.whoseTurn = prev.whoseTurn.other();
-    this.turnNo = prev.turnNo + 1;
-    stones.addAll(prev.stones);
+  GameState(
+      StoneColor whoseTurn,
+      int turnNo,
+      Set<Stone> stones,
+      int blacksCaptured,
+      int whitesCaptured) {
+    this.whoseTurn = whoseTurn;
+    this.turnNo = turnNo;
+    this.stones = stones;
+    this.blacksCaptured = blacksCaptured;
+    this.whitesCaptured = whitesCaptured;
   }
 
   @Override
@@ -69,49 +80,6 @@ public class GameState {
 
   public StoneColor getWhoseTurn() {
     return whoseTurn;
-  }
-
-  GameState.Builder nextTurnBuilder() {
-    return new GameState(this).new Builder();
-  }
-
-  class Builder {
-    private final Stone[][] stonesIndex;
-
-    Builder() {
-      stonesIndex = new Stone[19][19];
-      for (Stone stone: stones) {
-        stonesIndex[stone.row][stone.col] = stone;
-      }
-    }
-
-    void add(Stone stone) {
-      stones.add(stone);
-      stonesIndex[stone.row][stone.col] = stone;
-    }
-    void remove(Stone stone) {
-      stones.remove(stone);
-      stonesIndex[stone.row][stone.col] = null;
-    }
-
-    /** @return stone or null if row and col unvalid (for convenience). */
-    Stone getStoneAt(int row, int col) {
-      if (row < 0 ||row >= stonesIndex.length || col < 0 || col >= stonesIndex[row].length) {
-        return null;
-      }
-      return stonesIndex[row][col];
-    }
-
-    GameState build() {
-      stones = Collections.unmodifiableSet(stones);
-      return GameState.this;
-//      for (int row = 0; row < tableSize; row++) {
-//        for (int col = 0; col < tableSize; col++) {
-//          stonesIndex[row][col] = null;
-//        }
-//      }
-
-    }
   }
 }
 
