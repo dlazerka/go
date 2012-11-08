@@ -16,14 +16,6 @@ class StoneView extends Drawable {
 
   StoneView(Stone stone, int size) {
     this.stone = stone;
-    setSize(size);
-  }
-
-  public Stone getStone() {
-    return stone;
-  }
-
-  public void setSize(int size) {
     this.mSize = size;
     RadialGradient shader = stone.getColor() == WHITE ? getWhite() : getBlack();
     mFillPaint.setShader(shader);

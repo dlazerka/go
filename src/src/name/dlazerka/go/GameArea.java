@@ -9,6 +9,7 @@ import name.dlazerka.go.model.KoRuleException;
 import name.dlazerka.go.model.NoLibertiesException;
 import name.dlazerka.go.model.SpaceTakenException;
 import name.dlazerka.go.model.Stone;
+import static name.dlazerka.go.model.StoneColor.*;
 import roboguice.RoboGuice;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -131,6 +132,8 @@ public class GameArea extends ViewGroup {
     super.onDraw(canvas);
     // Grid
     canvas.drawLines(mGrid, mPaintGrid);
+
+    // Stones
     for (int i = 0; i < stoneViews.length; i++) {
       for (int j = 0; j < stoneViews[i].length; j++) {
         StoneView stoneView = stoneViews[i][j];
@@ -143,6 +146,27 @@ public class GameArea extends ViewGroup {
         canvas.restore();
       }
     }
+
+    // Captured stones
+    canvas.save();
+    canvas.translate(PADDING + mCellSize / 2, mRect.height() + mCellSize);
+    int b = mGameState.getBlacksCaptured();
+    for (int i = 0; i < b; i++) {
+      int rowCol = Util.getCapturedRowCol(i);
+      int row = (rowCol / 1000);
+      int col = rowCol % 1000;
+      Stone stone = new Stone(row, col, BLACK);
+      StoneView stoneView = new StoneView(stone, mCellSize);
+
+      canvas.save();
+      canvas.translate(
+          stone.getCol() * mCellSize,
+          stone.getRow() * mCellSize);
+      stoneView.draw(canvas);
+      canvas.restore();
+    }
+    canvas.restore();
+
   }
 
   @Override

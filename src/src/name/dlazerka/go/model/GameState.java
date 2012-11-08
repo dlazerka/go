@@ -81,6 +81,14 @@ public class GameState {
   public StoneColor getWhoseTurn() {
     return whoseTurn;
   }
+
+  public int getBlacksCaptured() {
+    return blacksCaptured;
+  }
+
+  public int getWhitesCaptured() {
+    return whitesCaptured;
+  }
 }
 
 
