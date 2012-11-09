@@ -1,7 +1,5 @@
 package name.dlazerka.go;
 
-import static name.dlazerka.go.model.StoneColor.WHITE;
-import name.dlazerka.go.model.Stone;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -10,36 +8,18 @@ import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 
 class StoneView extends Drawable {
-  final Stone stone;
-  final Paint mFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-  int mSize;
+  private final int size;
+  private final Paint fillPaint;
 
-  StoneView(Stone stone, int size) {
-    this.stone = stone;
-    this.mSize = size;
-    RadialGradient shader = stone.getColor() == WHITE ? getWhite() : getBlack();
-    mFillPaint.setShader(shader);
+  private StoneView(int size, Shader shader) {
+    this.size = size;
+    fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    fillPaint.setShader(shader);
   }
 
   @Override
   public void draw(Canvas canvas) {
-    canvas.drawCircle(mSize / 2, mSize / 2, mSize / 2, mFillPaint);
-  }
-
-  RadialGradient getBlack() {
-    return new RadialGradient(
-        mSize * .3f, mSize * .3f, mSize * .8f,
-        new int[] { 0xFF777777, 0xFF222222, 0xFF000000 },
-        new float[] { 0, .3f, 1.0f },
-        Shader.TileMode.CLAMP);
-  }
-
-  RadialGradient getWhite() {
-    return new RadialGradient(
-        mSize * .47f, mSize * .47f, mSize * .48f,
-        new int[] { 0xFFFFFFFF, 0xFFDDDDDD, 0xFF777777 },
-        new float[] { .7f, .9f, 1.0f },
-        Shader.TileMode.CLAMP);
+    canvas.drawCircle(size / 2, size / 2, size / 2, fillPaint);
   }
 
   @Override
@@ -53,5 +33,25 @@ class StoneView extends Drawable {
   @Override
   public int getOpacity() {
     return 0;
+  }
+
+  static class Black extends StoneView {
+    Black(int size) {
+      super(size, new RadialGradient(
+          size * .3f, size * .3f, size * .8f,
+          new int[] { 0xFF777777, 0xFF222222, 0xFF000000 },
+          new float[] { 0, .3f, 1.0f },
+          Shader.TileMode.CLAMP));
+    }
+  }
+
+  static class White extends StoneView {
+    White(int size) {
+      super(size, new RadialGradient(
+          size * .47f, size * .47f, size * .48f,
+          new int[] { 0xFFFFFFFF, 0xFFDDDDDD, 0xFF777777 },
+          new float[] { .7f, .9f, 1.0f },
+          Shader.TileMode.CLAMP));
+    }
   }
 }
