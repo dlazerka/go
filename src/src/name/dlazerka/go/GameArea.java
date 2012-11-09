@@ -50,6 +50,9 @@ public class GameArea extends ViewGroup {
     setKeepScreenOn(true);
 
     stones = new Stone[mGame.getTableSize()][mGame.getTableSize()];
+    blackStoneView = new StoneView.Black();
+    whiteStoneView = new StoneView.White();
+
     setGameState(mGame.getLastState());
 
     mPaintGrid.setColor(Color.DKGRAY);
@@ -181,8 +184,8 @@ public class GameArea extends ViewGroup {
     mRect.bottom = Math.min(r, b);
 
     mCellSize = (mRect.width() - 2 * PADDING) / mGame.getTableSize();
-    blackStoneView = new StoneView.Black(mCellSize);
-    whiteStoneView = new StoneView.White(mCellSize);
+    blackStoneView.setSize(mCellSize);
+    whiteStoneView.setSize(mCellSize);
 
     if (mGrid == null) {
       mGrid = new float[mGame.getTableSize() * 8];
