@@ -28,72 +28,71 @@ public class GameArea extends ViewGroup {
   final static int PADDING = 3;
 
   /** For painting grid. */
-  final Paint mPaintGrid = new Paint();
+  final Paint paintGrid = new Paint();
   /** Layout area. Mutable. */
-  final Rect mRect = new Rect();
+  final Rect rect = new Rect();
   /** Row-major. */
   final Stone[][] stones;
-  StoneView blackStoneView;
-  StoneView whiteStoneView;
+  StoneDrawable blackStoneDrawable;
+  StoneDrawable whiteStoneDrawable;
 
   @Inject
-  Game mGame;
+  Game game;
 
-  GameState mGameState;
+  GameState gameState;
 
-  int mCellSize;
-  float[] mGrid;
+  int cellSize;
+  float[] grid;
 
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
     RoboGuice.injectMembers(context, this);
     setKeepScreenOn(true);
 
-    stones = new Stone[mGame.getTableSize()][mGame.getTableSize()];
-    blackStoneView = new StoneView.Black();
-    whiteStoneView = new StoneView.White();
+    stones = new Stone[game.getTableSize()][game.getTableSize()];
+    blackStoneDrawable = new StoneDrawable.Black();
+    whiteStoneDrawable = new StoneDrawable.White();
 
-    setGameState(mGame.getLastState());
+    setGameState(game.getLastState());
 
-    mPaintGrid.setColor(Color.DKGRAY);
-    mPaintGrid.setStrokeWidth(2f);
-    mPaintGrid.setStrokeCap(Paint.Cap.ROUND);
+    paintGrid.setColor(Color.DKGRAY);
+    paintGrid.setStrokeWidth(2f);
+    paintGrid.setStrokeCap(Paint.Cap.ROUND);
 
-    mGame.addListener(new GameListener());
+    game.addListener(new GameListener());
   }
 
   void setGameState(GameState state) {
-    if (mGameState != null) {
-      Set<Stone> prevStones = mGameState.getStones();
+    if (gameState != null) {
+      Set<Stone> prevStones = gameState.getStones();
       Set<Stone> newStones = state.getStones();
       Set<Stone> prevStonesM = new HashSet<Stone>(prevStones);
       Set<Stone> newStonesM = new HashSet<Stone>(newStones);
 
       prevStonesM.removeAll(newStones);
       for (Stone stone : prevStonesM) {
-        removeStoneView(stone);
+        removeStone(stone);
       }
 
       newStonesM.removeAll(prevStones);
       for (Stone stone : newStonesM) {
-        addStoneView(stone);
+        addStone(stone);
       }
     }
-    mGameState = state;
+    gameState = state;
   }
 
-  private void addStoneView(Stone stone) {
+  private void addStone(Stone stone) {
     stones[stone.getRow()][stone.getCol()] = stone;
     invalidate();
   }
 
-  private void removeStoneView(Stone stone) {
+  private void removeStone(Stone stone) {
     stones[stone.getRow()][stone.getCol()] = null;
     invalidate();
   }
 
-  void removeAllStoneViews() {
-    removeAllViews();
+  void removeAllStones() {
     for (int i = 0; i < stones.length; i++) {
       for (int j = 0; j < stones[i].length; j++) {
         stones[i][j] = null;
@@ -103,39 +102,39 @@ public class GameArea extends ViewGroup {
 
   /** @return Position on the canvas for given row (zero-based) */
   private int getX(int row) {
-    int l = mRect.left + mCellSize / 2 + PADDING;
-    int r = mRect.right - mCellSize / 2 - PADDING;
+    int l = rect.left + cellSize / 2 + PADDING;
+    int r = rect.right - cellSize / 2 - PADDING;
     return getCoord(row, l, r);
   }
 
   /** @return Position on canvas for given row (zero-based) */
   private int getY(int col) {
-    int t = mRect.top + mCellSize / 2 + PADDING;
-    int b = mRect.bottom - mCellSize / 2 - PADDING;
+    int t = rect.top + cellSize / 2 + PADDING;
+    int b = rect.bottom - cellSize / 2 - PADDING;
     return getCoord(col, t, b);
   }
 
   private int getCoord(int i, int min, int max) {
     // l + (r-l) * i/N
     // But N-1 because we want i/N to be equal to 1 at the last line.
-    return min + (max - min) * i / (mGame.getTableSize() - 1);
+    return min + (max - min) * i / (game.getTableSize() - 1);
   }
 
   /** @return Row (zero-based) for given position on the canvas */
   private int getRow(float y) {
-    return Math.round(0.5f + (y - PADDING) / (mRect.bottom - mRect.top - 2*PADDING) * mGame.getTableSize()) - 1;
+    return Math.round(0.5f + (y - PADDING) / (rect.bottom - rect.top - 2*PADDING) * game.getTableSize()) - 1;
   }
 
   /** @return Column (zero-based) for given position on the canvas */
   private int getCol(float x) {
-    return Math.round(0.5f + (x - PADDING) / (mRect.right - mRect.left - 2*PADDING) * mGame.getTableSize()) - 1;
+    return Math.round(0.5f + (x - PADDING) / (rect.right - rect.left - 2*PADDING) * game.getTableSize()) - 1;
   }
 
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     // Grid
-    canvas.drawLines(mGrid, mPaintGrid);
+    canvas.drawLines(grid, paintGrid);
 
     // Stones
     for (int i = 0; i < stones.length; i++) {
@@ -145,11 +144,11 @@ public class GameArea extends ViewGroup {
         int x = getX(stone.getCol());
         int y = getY(stone.getRow());
         canvas.save();
-        canvas.translate(x - mCellSize / 2, y - mCellSize / 2);
+        canvas.translate(x - cellSize / 2, y - cellSize / 2);
         if (stone.getColor() == BLACK) {
-          blackStoneView.draw(canvas);
+          blackStoneDrawable.draw(canvas);
         } else {
-          whiteStoneView.draw(canvas);
+          whiteStoneDrawable.draw(canvas);
         }
         canvas.restore();
       }
@@ -157,8 +156,8 @@ public class GameArea extends ViewGroup {
 
     // Captured stones
     canvas.save();
-    canvas.translate(PADDING + mCellSize / 2, mRect.height() + mCellSize);
-    int b = mGameState.getBlacksCaptured();
+    canvas.translate(PADDING + cellSize / 2, rect.height() + cellSize);
+    int b = gameState.getBlacksCaptured();
     for (int i = 0; i < b; i++) {
       int rowCol = Util.getCapturedRowCol(i);
       int row = (rowCol / 1000);
@@ -166,9 +165,9 @@ public class GameArea extends ViewGroup {
 
       canvas.save();
       canvas.translate(
-          col * mCellSize,
-          row * mCellSize);
-      blackStoneView.draw(canvas);
+          col * cellSize,
+          row * cellSize);
+      blackStoneDrawable.draw(canvas);
       canvas.restore();
     }
     canvas.restore();
@@ -178,35 +177,35 @@ public class GameArea extends ViewGroup {
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
     if (!changed) return;
-    mRect.left = l;
-    mRect.top = t;
-    mRect.right = Math.min(r, b);
-    mRect.bottom = Math.min(r, b);
+    rect.left = l;
+    rect.top = t;
+    rect.right = Math.min(r, b);
+    rect.bottom = Math.min(r, b);
 
-    mCellSize = (mRect.width() - 2 * PADDING) / mGame.getTableSize();
-    blackStoneView.setSize(mCellSize);
-    whiteStoneView.setSize(mCellSize);
+    cellSize = (rect.width() - 2 * PADDING) / game.getTableSize();
+    blackStoneDrawable.setSize(cellSize);
+    whiteStoneDrawable.setSize(cellSize);
 
-    if (mGrid == null) {
-      mGrid = new float[mGame.getTableSize() * 8];
+    if (grid == null) {
+      grid = new float[game.getTableSize() * 8];
 
       float minX = getX(0);
-      float maxX = getX(mGame.getTableSize() - 1);
+      float maxX = getX(game.getTableSize() - 1);
       float minY = getY(0);
-      float maxY = getY(mGame.getTableSize() - 1);
-      for (int i = 0, at = 0; i < mGame.getTableSize(); ++i) {
+      float maxY = getY(game.getTableSize() - 1);
+      for (int i = 0, at = 0; i < game.getTableSize(); ++i) {
         float x = getX(i);
         float y = getY(i);
         // vertical line
-        mGrid[at++] = x;
-        mGrid[at++] = minY;
-        mGrid[at++] = x;
-        mGrid[at++] = maxY;
+        grid[at++] = x;
+        grid[at++] = minY;
+        grid[at++] = x;
+        grid[at++] = maxY;
         // horizontal line
-        mGrid[at++] = minX;
-        mGrid[at++] = y;
-        mGrid[at++] = maxX;
-        mGrid[at++] = y;
+        grid[at++] = minX;
+        grid[at++] = y;
+        grid[at++] = maxX;
+        grid[at++] = y;
       }
     }
 
@@ -218,10 +217,10 @@ public class GameArea extends ViewGroup {
       case MotionEvent.ACTION_DOWN:
         int row = getRow(event.getY());
         int col = getCol(event.getX());
-        if (row >= 0 && row < mGame.getTableSize() &&
-            col >= 0 && col < mGame.getTableSize()) {
+        if (row >= 0 && row < game.getTableSize() &&
+            col >= 0 && col < game.getTableSize()) {
           try {
-            mGame.makeTurnAt(row, col);
+            game.makeTurnAt(row, col);
           } catch (SpaceTakenException e) {
             // Toast.makeText(getContext(), "This space is taken",
             // Toast.LENGTH_SHORT).show();
@@ -271,8 +270,8 @@ public class GameArea extends ViewGroup {
 
     @Override
     public void onGameReset() {
-      for (int row = 0; row < mGame.getTableSize(); row++) {
-        for (int col = 0; col < mGame.getTableSize(); col++) {
+      for (int row = 0; row < game.getTableSize(); row++) {
+        for (int col = 0; col < game.getTableSize(); col++) {
           stones[row][col] = null;
         }
       }

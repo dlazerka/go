@@ -23,72 +23,73 @@ public class GameActivity extends GamesApiActivity {
   // private Toast currentToast;
 
   @InjectView(R.id.gameArea)
-  private GameArea mGameArea;
+  GameArea gameArea;
   @InjectView(R.id.pass)
-  Button mPassButton;
+  Button pass;
   @InjectView(R.id.back)
-  Button mBackButton;
+  Button back;
   @InjectView(R.id.forward)
-  Button mForwardButton;
+  Button forward;
   @InjectView(R.id.turnNo)
-  TextView mTurnNo;
+  TextView turnNo;
+
   @Inject
-  Game mGame;
+  Game game;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    mGame.addListener(new GameListener());
+    game.addListener(new GameListener());
 
     Typeface font = Typeface.createFromAsset(getAssets(), "fonts/Shojumaru-Regular.ttf");
-    mPassButton.setTypeface(font);
-    mBackButton.setTypeface(font);
-    mTurnNo.setTypeface(font);
-    mForwardButton.setTypeface(font);
+    pass.setTypeface(font);
+    back.setTypeface(font);
+    turnNo.setTypeface(font);
+    forward.setTypeface(font);
 
     updateBackForward();
-    mPassButton.setOnClickListener(new OnClickListener() {
+    pass.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        mGame.passTurn();
+        game.passTurn();
       }
     });
-    mBackButton.setOnClickListener(new OnClickListener() {
+    back.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        int turnNo = mGameArea.mGameState.getTurnNo();
+        int turnNo = gameArea.gameState.getTurnNo();
         if (turnNo == 0) {
           // Shouldn't be possible, because button is gone.
           Ln.e("Attempt to go back before first turn");
           return;
         }
-        GameState prevState = mGame.getStateAt(turnNo - 1);
-        mGameArea.setGameState(prevState);
+        GameState prevState = game.getStateAt(turnNo - 1);
+        gameArea.setGameState(prevState);
 
         updateBackForward();
       }
     });
-    mForwardButton.setOnClickListener(new OnClickListener() {
+    forward.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        int turnNo = mGameArea.mGameState.getTurnNo();
-        GameState lastState = mGame.getLastState();
+        int turnNo = gameArea.gameState.getTurnNo();
+        GameState lastState = game.getLastState();
         if (turnNo == lastState.getTurnNo()) {
           // Shouldn't be possible, because button is gone.
           Ln.e("Attempt to go forward after last turn");
           return;
         }
-        GameState prevState = mGame.getStateAt(turnNo + 1);
-        mGameArea.setGameState(prevState);
+        GameState prevState = game.getStateAt(turnNo + 1);
+        gameArea.setGameState(prevState);
 
         updateBackForward();
       }
     });
-    mGameArea.setOnTouchListener(new View.OnTouchListener() {
+    gameArea.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
-        if (!mGame.getLastState().equals(mGameArea.mGameState)) {
-          mGameArea.setGameState(mGame.getLastState());
+        if (!game.getLastState().equals(gameArea.gameState)) {
+          gameArea.setGameState(game.getLastState());
           updateBackForward();
           return true;
         }
@@ -135,18 +136,18 @@ public class GameActivity extends GamesApiActivity {
   }
 
   private void updateBackForward() {
-    if (mGameArea.mGameState.equals(mGame.getLastState())) {
-      mForwardButton.setVisibility(View.INVISIBLE);
+    if (gameArea.gameState.equals(game.getLastState())) {
+      forward.setVisibility(View.INVISIBLE);
     } else {
-      mForwardButton.setVisibility(View.VISIBLE);
+      forward.setVisibility(View.VISIBLE);
     }
-    if (mGameArea.mGameState.equals(mGame.getStateAt(0))) {
-      mBackButton.setVisibility(View.INVISIBLE);
+    if (gameArea.gameState.equals(game.getStateAt(0))) {
+      back.setVisibility(View.INVISIBLE);
     } else {
-      mBackButton.setVisibility(View.VISIBLE);
+      back.setVisibility(View.VISIBLE);
     }
 
-    mTurnNo.setText(mGameArea.mGameState.getTurnNo() + "");
+    turnNo.setText(gameArea.gameState.getTurnNo() + "");
   }
 
   // private String getOpponentPlayerId() throws NotYetConnectedException {

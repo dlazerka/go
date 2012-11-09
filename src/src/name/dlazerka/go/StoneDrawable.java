@@ -9,13 +9,13 @@ import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 
 /** Don't forget to call setSize(), or you get problems drawing. */
-abstract class StoneView extends Drawable {
+abstract class StoneDrawable extends Drawable {
   private final Paint fillPaint;
   private final Matrix matrix;
   private final Shader shader;
   private int size;
 
-  private StoneView(Shader shader) {
+  private StoneDrawable(Shader shader) {
     this.shader = shader;
     matrix = new Matrix();
     fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -46,7 +46,7 @@ abstract class StoneView extends Drawable {
     return 0;
   }
 
-  static class Black extends StoneView {
+  static class Black extends StoneDrawable {
     Black() {
       super(new RadialGradient(
           .3f, .3f, .8f,
@@ -56,7 +56,7 @@ abstract class StoneView extends Drawable {
     }
   }
 
-  static class White extends StoneView {
+  static class White extends StoneDrawable {
     White() {
       super(new RadialGradient(
           .47f, .47f, .48f,
