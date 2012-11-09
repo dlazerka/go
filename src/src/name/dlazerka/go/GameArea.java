@@ -145,10 +145,25 @@ public class GameArea extends ViewGroup {
   }
 
   private void drawCapturedStones(Canvas canvas) {
+    // Blacks
     canvas.save();
+    // Below the grid on the left.
     canvas.translate(PADDING + cellSize / 2, rect.height() + cellSize);
-    int b = gameState.getBlacksCaptured();
-    for (int i = 0; i < b; i++) {
+    drawCapturedStones(canvas, gameState.getBlacksCaptured(), blackStoneDrawable);
+    canvas.restore();
+
+    // Whites
+    canvas.save();
+    // Below the grid on the right.
+    canvas.translate(canvas.getWidth() - cellSize / 2 - PADDING, rect.height() + cellSize);
+    canvas.scale(-1, 1); // Flip horizontally.
+    drawCapturedStones(canvas, gameState.getWhitesCaptured(), whiteStoneDrawable);
+    canvas.restore();
+  }
+
+  private void drawCapturedStones(
+      Canvas canvas, int count, StoneDrawable drawable) {
+    for (int i = 0; i < count; i++) {
       int rowCol = Util.getCapturedRowCol(i);
       int row = (rowCol / 1000);
       int col = rowCol % 1000;
@@ -157,10 +172,9 @@ public class GameArea extends ViewGroup {
       canvas.translate(
           col * cellSize,
           row * cellSize);
-      blackStoneDrawable.draw(canvas);
+      drawable.draw(canvas);
       canvas.restore();
     }
-    canvas.restore();
   }
 
   @Override
