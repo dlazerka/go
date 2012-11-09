@@ -22,6 +22,10 @@ abstract class StoneDrawable extends Drawable {
     fillPaint.setShader(shader);
   }
 
+  int getSize() {
+    return size;
+  }
+
   void setSize(int size) {
     this.size = size;
     matrix.setScale(size, size);

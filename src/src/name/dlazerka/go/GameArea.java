@@ -25,6 +25,8 @@ import android.widget.Toast;
 import com.google.inject.Inject;
 
 public class GameArea extends ViewGroup {
+  static final int MAX_DRAWN_CAPTURED_STONES = 16;
+
   /** Minimal distance between stone edge and view edge. */
   final static int PADDING = 3;
 
@@ -123,6 +125,8 @@ public class GameArea extends ViewGroup {
     drawStones(canvas);
 
     drawCapturedStones(canvas);
+
+    drawWhoseTurn(canvas);
   }
 
   private void drawStones(Canvas canvas) {
@@ -145,36 +149,66 @@ public class GameArea extends ViewGroup {
   }
 
   private void drawCapturedStones(Canvas canvas) {
+    int dx = PADDING + cellSize / 2;
+    int dy = rect.height() + cellSize;
+
     // Blacks
     canvas.save();
     // Below the grid on the left.
-    canvas.translate(PADDING + cellSize / 2, rect.height() + cellSize);
-    drawCapturedStones(canvas, gameState.getBlacksCaptured(), blackStoneDrawable);
+    canvas.translate(dx, dy);
+    drawCapturedStones(canvas, gameState.getBlacksCaptured(), blackStoneDrawable, false);
     canvas.restore();
 
     // Whites
     canvas.save();
     // Below the grid on the right.
-    canvas.translate(canvas.getWidth() - cellSize / 2 - PADDING, rect.height() + cellSize);
-    canvas.scale(-1, 1); // Flip horizontally.
-    drawCapturedStones(canvas, gameState.getWhitesCaptured(), whiteStoneDrawable);
+    canvas.translate(canvas.getWidth() - dx - cellSize, dy);
+    drawCapturedStones(canvas, gameState.getWhitesCaptured(), whiteStoneDrawable, true);
     canvas.restore();
   }
 
   private void drawCapturedStones(
-      Canvas canvas, int count, StoneDrawable drawable) {
+      Canvas canvas, int count, StoneDrawable drawable, boolean flip) {
+    if (count > MAX_DRAWN_CAPTURED_STONES) {
+      count = MAX_DRAWN_CAPTURED_STONES;
+    }
     for (int i = 0; i < count; i++) {
       int rowCol = Util.getCapturedRowCol(i);
       int row = (rowCol / 1000);
       int col = rowCol % 1000;
 
+      if (flip) {
+        col = -col;
+      }
+
       canvas.save();
-      canvas.translate(
-          col * cellSize,
-          row * cellSize);
+      int x = col * cellSize;
+      int y = row * cellSize;
+      canvas.translate(x, y);
       drawable.draw(canvas);
       canvas.restore();
     }
+  }
+
+  private void drawWhoseTurn(Canvas canvas) {
+    // Below the grid on the left.
+    int dx = 5 * cellSize + cellSize / 2 + PADDING;
+    int dy = rect.height();
+    canvas.save();
+    StoneDrawable drawable;
+    if (gameState.getWhoseTurn() == BLACK) {
+      // Flip horizontally.
+      canvas.translate(rect.width() - dx - 2 * cellSize, dy);
+      drawable = blackStoneDrawable;
+    } else {
+      canvas.translate(dx, dy);
+      drawable = whiteStoneDrawable;
+    }
+    int oldSize = drawable.getSize();
+    drawable.setSize(2 * cellSize);
+    drawable.draw(canvas);
+    drawable.setSize(oldSize);
+    canvas.restore();
   }
 
   @Override
@@ -211,7 +245,6 @@ public class GameArea extends ViewGroup {
         grid[at++] = y;
       }
     }
-
   }
 
   @Override
