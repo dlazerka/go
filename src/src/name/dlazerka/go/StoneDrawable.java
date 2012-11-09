@@ -35,15 +35,17 @@ abstract class StoneDrawable extends Drawable {
 
   @Override
   public void setAlpha(int alpha) {
+    fillPaint.setAlpha(alpha);
   }
 
   @Override
   public void setColorFilter(ColorFilter cf) {
+    fillPaint.setColorFilter(cf);
   }
 
   @Override
   public int getOpacity() {
-    return 0;
+    return android.graphics.PixelFormat.OPAQUE;
   }
 
   static class Black extends StoneDrawable {

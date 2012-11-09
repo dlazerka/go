@@ -1,5 +1,7 @@
 package name.dlazerka.go;
 
+import static name.dlazerka.go.model.StoneColor.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,7 +11,6 @@ import name.dlazerka.go.model.KoRuleException;
 import name.dlazerka.go.model.NoLibertiesException;
 import name.dlazerka.go.model.SpaceTakenException;
 import name.dlazerka.go.model.Stone;
-import static name.dlazerka.go.model.StoneColor.*;
 import roboguice.RoboGuice;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -71,33 +72,16 @@ public class GameArea extends ViewGroup {
 
       prevStonesM.removeAll(newStones);
       for (Stone stone : prevStonesM) {
-        removeStone(stone);
+        stones[stone.getRow()][stone.getCol()] = null;
       }
 
       newStonesM.removeAll(prevStones);
       for (Stone stone : newStonesM) {
-        addStone(stone);
+        stones[stone.getRow()][stone.getCol()] = stone;
       }
+      invalidate();
     }
     gameState = state;
-  }
-
-  private void addStone(Stone stone) {
-    stones[stone.getRow()][stone.getCol()] = stone;
-    invalidate();
-  }
-
-  private void removeStone(Stone stone) {
-    stones[stone.getRow()][stone.getCol()] = null;
-    invalidate();
-  }
-
-  void removeAllStones() {
-    for (int i = 0; i < stones.length; i++) {
-      for (int j = 0; j < stones[i].length; j++) {
-        stones[i][j] = null;
-      }
-    }
   }
 
   /** @return Position on the canvas for given row (zero-based) */
@@ -136,7 +120,12 @@ public class GameArea extends ViewGroup {
     // Grid
     canvas.drawLines(grid, paintGrid);
 
-    // Stones
+    drawStones(canvas);
+
+    drawCapturedStones(canvas);
+  }
+
+  private void drawStones(Canvas canvas) {
     for (int i = 0; i < stones.length; i++) {
       for (int j = 0; j < stones[i].length; j++) {
         Stone stone = stones[i][j];
@@ -153,8 +142,9 @@ public class GameArea extends ViewGroup {
         canvas.restore();
       }
     }
+  }
 
-    // Captured stones
+  private void drawCapturedStones(Canvas canvas) {
     canvas.save();
     canvas.translate(PADDING + cellSize / 2, rect.height() + cellSize);
     int b = gameState.getBlacksCaptured();
@@ -171,7 +161,6 @@ public class GameArea extends ViewGroup {
       canvas.restore();
     }
     canvas.restore();
-
   }
 
   @Override
