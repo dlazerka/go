@@ -1,8 +1,8 @@
 + Prev and Next
 + Captured stones
 + Whose turn
-> Go board marks.
-* Placing a stone on touch up.
++ Go board marks.
+> Placing a stone on touch up.
 * Placing a stone by dragging the big stone.
 * Pass turn by sliding Pass button.
 * History button that shows arrows.

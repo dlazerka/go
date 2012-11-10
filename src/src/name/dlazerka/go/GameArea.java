@@ -28,7 +28,7 @@ public class GameArea extends ViewGroup {
   /** Minimal distance between stone edge and view edge. */
   final static int PADDING = 3;
 
-  final GridDrawable grid;
+  final GridDrawable gridDrawable;
   /** Layout area. Mutable. */
   final Rect rect = new Rect();
   /** Row-major. */
@@ -51,7 +51,7 @@ public class GameArea extends ViewGroup {
     stones = new Stone[game.getTableSize()][game.getTableSize()];
     blackStoneDrawable = new StoneDrawable.Black();
     whiteStoneDrawable = new StoneDrawable.White();
-    grid = new GridDrawable(game.getTableSize());
+    gridDrawable = new GridDrawable(game.getTableSize());
 
     setGameState(game.getLastState());
 
@@ -116,7 +116,7 @@ public class GameArea extends ViewGroup {
     canvas.save();
     int p = PADDING + cellSize / 2;
     canvas.clipRect(p, p, rect.width() - p, rect.height() - p);
-    grid.draw(canvas);
+    gridDrawable.draw(canvas);
     canvas.restore();
 
     drawStones(canvas);
@@ -219,29 +219,6 @@ public class GameArea extends ViewGroup {
     cellSize = (rect.width() - 2 * PADDING) / game.getTableSize();
     blackStoneDrawable.setSize(cellSize);
     whiteStoneDrawable.setSize(cellSize);
-
-    if (grid == null) {
-//      grid = new float[game.getTableSize() * 8];
-//
-//      float minX = getX(0);
-//      float maxX = getX(game.getTableSize() - 1);
-//      float minY = getY(0);
-//      float maxY = getY(game.getTableSize() - 1);
-//      for (int i = 0, at = 0; i < game.getTableSize(); ++i) {
-//        float x = getX(i);
-//        float y = getY(i);
-//        // vertical line
-//        grid[at++] = x;
-//        grid[at++] = minY;
-//        grid[at++] = x;
-//        grid[at++] = maxY;
-//        // horizontal line
-//        grid[at++] = minX;
-//        grid[at++] = y;
-//        grid[at++] = maxX;
-//        grid[at++] = y;
-//      }
-    }
   }
 
   @Override
