@@ -90,6 +90,7 @@ public class GameActivity extends GamesApiActivity {
       public boolean onTouch(View v, MotionEvent event) {
         if (!game.getLastState().equals(gameArea.gameState)) {
           gameArea.setGameState(game.getLastState());
+          gameArea.skipNextTouchUp();
           updateBackForward();
           return true;
         }

@@ -43,6 +43,9 @@ public class GameArea extends ViewGroup {
 
   int cellSize;
 
+  /** Relevant on history browsing. */
+  private boolean skipNextTouchUp;
+
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
     RoboGuice.injectMembers(context, this);
@@ -221,28 +224,42 @@ public class GameArea extends ViewGroup {
     whiteStoneDrawable.setSize(cellSize);
   }
 
+  void skipNextTouchUp() {
+    this.skipNextTouchUp = true;
+  }
+
   @Override
   public boolean onTouchEvent(MotionEvent event) {
+    int row = getRow(event.getY());
+    int col = getCol(event.getX());
+    gridDrawable.unhighlight();
+    invalidate();
+    if (row < 0 || row >= game.getTableSize() || col < 0 || col >= game.getTableSize()) {
+      return true;
+    }
     switch (event.getAction()) {
       case MotionEvent.ACTION_DOWN:
-        int row = getRow(event.getY());
-        int col = getCol(event.getX());
-        if (row >= 0 && row < game.getTableSize() &&
-            col >= 0 && col < game.getTableSize()) {
-          try {
-            game.makeTurnAt(row, col);
-          } catch (SpaceTakenException e) {
-            // Toast.makeText(getContext(), "This space is taken",
-            // Toast.LENGTH_SHORT).show();
-          } catch (NoLibertiesException e) {
-            Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
-          } catch (KoRuleException e) {
-            String msg = "Ko rule violation";
-            if (e.getTurnsAgo() > 2) {
-              msg = "Super ko rule violation " + e.getTurnsAgo() + " turns ago";
-            }
-            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+      case MotionEvent.ACTION_MOVE:
+        gridDrawable.highlight(row, col);
+        return true;
+      case MotionEvent.ACTION_UP:
+        if (skipNextTouchUp) {
+          skipNextTouchUp = false;
+          return true;
+        }
+        try {
+          game.makeTurnAt(row, col);
+        } catch (SpaceTakenException e) {
+          // Toast.makeText(getContext(), "This space is taken",
+          // Toast.LENGTH_SHORT).show();
+        } catch (NoLibertiesException e) {
+          Toast.makeText(getContext(), "No liberty", Toast.LENGTH_SHORT).show();
+        } catch (KoRuleException e) {
+          String msg = "Ko rule violation";
+          if (e.getTurnsAgo() > 2) {
+            msg = "Super ko rule violation " + e.getTurnsAgo() + " turns ago";
           }
+          Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
         }
 
         // if (!mGameState.isGamesApiConnected()) {
@@ -268,7 +285,7 @@ public class GameArea extends ViewGroup {
         // }
         // }
     }
-    return super.onTouchEvent(event);
+    return true;
   }
 
   private class GameListener implements name.dlazerka.go.model.GameListener {

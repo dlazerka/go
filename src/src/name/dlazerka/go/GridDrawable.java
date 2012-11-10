@@ -11,8 +11,11 @@ public class GridDrawable extends Drawable {
   private static final float STROKE_WIDTH = 1f;
   final int boardSize;
   final Paint paint;
+  final Paint paintHighlighted;
   final int[][] dotsPositions;
   final float dotsRadius = 3f;
+  int highlightedRow = -1;
+  int highlightedCol = -1;
   Rect clipBounds;
 
   GridDrawable(int boardSize) {
@@ -22,6 +25,8 @@ public class GridDrawable extends Drawable {
     paint.setColor(Color.DKGRAY);
     paint.setStrokeWidth(STROKE_WIDTH);
     paint.setStrokeCap(Paint.Cap.ROUND);
+    paintHighlighted = new Paint(paint);
+    paintHighlighted.setStrokeWidth(2 * STROKE_WIDTH);
 
     if (boardSize == 9) {
       dotsPositions = new int[][]
@@ -51,6 +56,16 @@ public class GridDrawable extends Drawable {
         + clipBounds.top + STROKE_WIDTH / 2;
   }
 
+  public void highlight(int row, int col) {
+    this.highlightedRow = row;
+    this.highlightedCol = col;
+  }
+
+  public void unhighlight() {
+    this.highlightedRow = -1;
+    this.highlightedCol = -1;
+  }
+
   @Override
   public void draw(Canvas canvas) {
     canvas.getClipBounds(clipBounds);
@@ -61,8 +76,10 @@ public class GridDrawable extends Drawable {
     for (int i = 0; i < boardSize; i++) {
       float x = getX(i);
       float y = getY(i);
-      canvas.drawLine(x, minY, x, maxY, paint);
-      canvas.drawLine(minX, y, maxX, y, paint);
+      canvas.drawLine(x, minY, x, maxY,
+          i == highlightedCol ? paintHighlighted : paint);
+      canvas.drawLine(minX, y, maxX, y,
+          i == highlightedRow ? paintHighlighted : paint);
     }
     // Dots
     for (int i = 0; i < dotsPositions.length; i++) {

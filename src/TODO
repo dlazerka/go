@@ -2,11 +2,11 @@
 + Captured stones
 + Whose turn
 + Go board marks.
-> Placing a stone on touch up.
-* Placing a stone by dragging the big stone.
-* Pass turn by sliding Pass button.
++ Placing a stone on touch up.
 * History button that shows arrows.
+* Pass turn by sliding Pass button.
 * Score
+* Placing a stone by dragging the big stone.
 * Dots at important intersections
 * Ko: PSK, SSK, NSSK, ChSK
 
