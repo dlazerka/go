@@ -8,9 +8,11 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 
 public class GridDrawable extends Drawable {
-  private static final float STROKE_WIDTH = 2f;
+  private static final float STROKE_WIDTH = 1f;
   final int boardSize;
   final Paint paint;
+  final int[][] dotsPositions;
+  final float dotsRadius = 3f;
   Rect clipBounds;
 
   GridDrawable(int boardSize) {
@@ -20,6 +22,19 @@ public class GridDrawable extends Drawable {
     paint.setColor(Color.DKGRAY);
     paint.setStrokeWidth(STROKE_WIDTH);
     paint.setStrokeCap(Paint.Cap.ROUND);
+
+    if (boardSize == 9) {
+      dotsPositions = new int[][]
+          {{2, 2}, {2, 6}, {6, 2}, {6, 6}, {4, 4}};
+    } else if (boardSize == 13) {
+      dotsPositions = new int[][]
+          {{3, 3}, {3, 9}, {9, 3}, {9, 9}};
+    } else {
+      dotsPositions = new int[][]
+          {{3, 3}, {3, 9}, {3, 15},
+          {9, 3}, {9, 9}, {9, 15},
+          {15, 3}, {15, 9}, {15, 15}};
+    }
   }
 
   /** @return Position on the canvas for given row (zero-based) */
@@ -48,6 +63,12 @@ public class GridDrawable extends Drawable {
       float y = getY(i);
       canvas.drawLine(x, minY, x, maxY, paint);
       canvas.drawLine(minX, y, maxX, y, paint);
+    }
+    // Dots
+    for (int i = 0; i < dotsPositions.length; i++) {
+      float x = getX(dotsPositions[i][0]);
+      float y = getY(dotsPositions[i][1]);
+      canvas.drawCircle(x, y, dotsRadius, paint);
     }
   }
 
