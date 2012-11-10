@@ -1,6 +1,6 @@
 package name.dlazerka.go;
 
-import static name.dlazerka.go.model.StoneColor.*;
+import static name.dlazerka.go.model.StoneColor.BLACK;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,8 +14,6 @@ import name.dlazerka.go.model.Stone;
 import roboguice.RoboGuice;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -30,8 +28,7 @@ public class GameArea extends ViewGroup {
   /** Minimal distance between stone edge and view edge. */
   final static int PADDING = 3;
 
-  /** For painting grid. */
-  final Paint paintGrid = new Paint();
+  final GridDrawable grid;
   /** Layout area. Mutable. */
   final Rect rect = new Rect();
   /** Row-major. */
@@ -45,7 +42,6 @@ public class GameArea extends ViewGroup {
   GameState gameState;
 
   int cellSize;
-  float[] grid;
 
   public GameArea(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -55,12 +51,9 @@ public class GameArea extends ViewGroup {
     stones = new Stone[game.getTableSize()][game.getTableSize()];
     blackStoneDrawable = new StoneDrawable.Black();
     whiteStoneDrawable = new StoneDrawable.White();
+    grid = new GridDrawable(game.getTableSize());
 
     setGameState(game.getLastState());
-
-    paintGrid.setColor(Color.DKGRAY);
-    paintGrid.setStrokeWidth(2f);
-    paintGrid.setStrokeCap(Paint.Cap.ROUND);
 
     game.addListener(new GameListener());
   }
@@ -120,7 +113,11 @@ public class GameArea extends ViewGroup {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     // Grid
-    canvas.drawLines(grid, paintGrid);
+    canvas.save();
+    int p = PADDING + cellSize / 2;
+    canvas.clipRect(p, p, rect.width() - p, rect.height() - p);
+    grid.draw(canvas);
+    canvas.restore();
 
     drawStones(canvas);
 
@@ -224,26 +221,26 @@ public class GameArea extends ViewGroup {
     whiteStoneDrawable.setSize(cellSize);
 
     if (grid == null) {
-      grid = new float[game.getTableSize() * 8];
-
-      float minX = getX(0);
-      float maxX = getX(game.getTableSize() - 1);
-      float minY = getY(0);
-      float maxY = getY(game.getTableSize() - 1);
-      for (int i = 0, at = 0; i < game.getTableSize(); ++i) {
-        float x = getX(i);
-        float y = getY(i);
-        // vertical line
-        grid[at++] = x;
-        grid[at++] = minY;
-        grid[at++] = x;
-        grid[at++] = maxY;
-        // horizontal line
-        grid[at++] = minX;
-        grid[at++] = y;
-        grid[at++] = maxX;
-        grid[at++] = y;
-      }
+//      grid = new float[game.getTableSize() * 8];
+//
+//      float minX = getX(0);
+//      float maxX = getX(game.getTableSize() - 1);
+//      float minY = getY(0);
+//      float maxY = getY(game.getTableSize() - 1);
+//      for (int i = 0, at = 0; i < game.getTableSize(); ++i) {
+//        float x = getX(i);
+//        float y = getY(i);
+//        // vertical line
+//        grid[at++] = x;
+//        grid[at++] = minY;
+//        grid[at++] = x;
+//        grid[at++] = maxY;
+//        // horizontal line
+//        grid[at++] = minX;
+//        grid[at++] = y;
+//        grid[at++] = maxX;
+//        grid[at++] = y;
+//      }
     }
   }
 
