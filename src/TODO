@@ -3,6 +3,7 @@
 + Whose turn
 + Go board marks.
 + Placing a stone on touch up.
+> Placing a stone only when finger wasn't moved for a sec.
 * History button that shows arrows.
 * Pass turn by sliding Pass button.
 * Score
@@ -12,3 +13,5 @@
 
 
 kaya, burlwood, bamboo.
+
+0240156636471

@@ -10,23 +10,27 @@ import android.graphics.drawable.Drawable;
 public class GridDrawable extends Drawable {
   private static final float STROKE_WIDTH = 1f;
   final int boardSize;
-  final Paint paint;
+  final Paint paintLine;
   final Paint paintHighlighted;
+  final Paint paintPrehighlighted;
   final int[][] dotsPositions;
   final float dotsRadius = 3f;
   int highlightedRow = -1;
   int highlightedCol = -1;
+  boolean prehighlighted;
   Rect clipBounds;
 
   GridDrawable(int boardSize) {
     this.boardSize = boardSize;
     clipBounds = new Rect();
-    paint = new Paint();
-    paint.setColor(Color.DKGRAY);
-    paint.setStrokeWidth(STROKE_WIDTH);
-    paint.setStrokeCap(Paint.Cap.ROUND);
-    paintHighlighted = new Paint(paint);
-    paintHighlighted.setStrokeWidth(2 * STROKE_WIDTH);
+    paintLine = new Paint();
+    paintLine.setColor(Color.DKGRAY);
+    paintLine.setStrokeWidth(STROKE_WIDTH);
+    paintLine.setStrokeCap(Paint.Cap.ROUND);
+    paintPrehighlighted = new Paint(paintLine);
+    paintPrehighlighted.setStrokeWidth(2*STROKE_WIDTH);
+    paintHighlighted = new Paint(paintLine);
+    paintHighlighted.setStrokeWidth(3*STROKE_WIDTH);
 
     if (boardSize == 9) {
       dotsPositions = new int[][]
@@ -40,6 +44,14 @@ public class GridDrawable extends Drawable {
           {9, 3}, {9, 9}, {9, 15},
           {15, 3}, {15, 9}, {15, 15}};
     }
+  }
+
+  public Integer getHighlightedRow() {
+    return highlightedRow == -1 ? null : highlightedRow;
+  }
+
+  public int getHighlightedCol() {
+    return highlightedCol == -1 ? null : highlightedCol;
   }
 
   /** @return Position on the canvas for given row (zero-based) */
@@ -56,14 +68,20 @@ public class GridDrawable extends Drawable {
         + clipBounds.top + STROKE_WIDTH / 2;
   }
 
-  public void highlight(int row, int col) {
-    this.highlightedRow = row;
-    this.highlightedCol = col;
+  public void highlight() {
+    prehighlighted = false;
+  }
+
+  public void prehighlight(int row, int col) {
+    prehighlighted = true;
+    highlightedRow = row;
+    highlightedCol = col;
   }
 
   public void unhighlight() {
     this.highlightedRow = -1;
     this.highlightedCol = -1;
+    prehighlighted = false;
   }
 
   @Override
@@ -73,30 +91,33 @@ public class GridDrawable extends Drawable {
     float maxX = getX(boardSize - 1);
     float minY = getY(0);
     float maxY = getY(boardSize - 1);
+    Paint paint;
     for (int i = 0; i < boardSize; i++) {
       float x = getX(i);
       float y = getY(i);
-      canvas.drawLine(x, minY, x, maxY,
-          i == highlightedCol ? paintHighlighted : paint);
-      canvas.drawLine(minX, y, maxX, y,
-          i == highlightedRow ? paintHighlighted : paint);
+      paint = i != highlightedCol ? paintLine :
+        prehighlighted ? paintPrehighlighted : paintHighlighted;
+      canvas.drawLine(x, minY, x, maxY, paint);
+      paint = i != highlightedRow ? paintLine :
+        prehighlighted ? paintPrehighlighted : paintHighlighted;
+      canvas.drawLine(minX, y, maxX, y, paint);
     }
     // Dots
     for (int i = 0; i < dotsPositions.length; i++) {
       float x = getX(dotsPositions[i][0]);
       float y = getY(dotsPositions[i][1]);
-      canvas.drawCircle(x, y, dotsRadius, paint);
+      canvas.drawCircle(x, y, dotsRadius, paintLine);
     }
   }
 
   @Override
   public void setAlpha(int alpha) {
-    paint.setAlpha(alpha);
+    paintLine.setAlpha(alpha);
   }
 
   @Override
   public void setColorFilter(ColorFilter cf) {
-    paint.setColorFilter(cf);
+    paintLine.setColorFilter(cf);
   }
 
   @Override

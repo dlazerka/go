@@ -4,6 +4,8 @@ import static name.dlazerka.go.model.StoneColor.BLACK;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import name.dlazerka.go.model.Game;
 import name.dlazerka.go.model.GameState;
@@ -35,6 +37,8 @@ public class GameArea extends ViewGroup {
   final Stone[][] stones;
   StoneDrawable blackStoneDrawable;
   StoneDrawable whiteStoneDrawable;
+
+  long lastTouchMove = -1;
 
   @Inject
   Game game;
@@ -228,6 +232,20 @@ public class GameArea extends ViewGroup {
     this.skipNextTouchUp = true;
   }
 
+  class PlaceStoneTimer extends Timer {
+  }
+
+  PlaceStoneTimer placeStoneTimer = new PlaceStoneTimer();
+
+  class PlaceStoneTimerTask extends TimerTask {
+    @Override
+    public void run() {
+      gridDrawable.highlight();
+      postInvalidate();
+    }
+  }
+
+
   @Override
   public boolean onTouchEvent(MotionEvent event) {
     int row = getRow(event.getY());
@@ -240,7 +258,15 @@ public class GameArea extends ViewGroup {
     switch (event.getAction()) {
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_MOVE:
-        gridDrawable.highlight(row, col);
+        if (gridDrawable.getHighlightedRow() == null) {
+          gridDrawable.prehighlight(row, col);
+          placeStoneTimer.schedule(new PlaceStoneTimerTask(), 50000);
+        } else if (gridDrawable.getHighlightedRow() != row
+            || gridDrawable.getHighlightedCol() != col) {
+          gridDrawable.prehighlight(row, col);
+          placeStoneTimer.cancel();
+          placeStoneTimer.schedule(new PlaceStoneTimerTask(), 50000);
+        }
         return true;
       case MotionEvent.ACTION_UP:
         if (skipNextTouchUp) {
